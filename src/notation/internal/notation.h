@@ -71,6 +71,7 @@ public:
     INotationElementsPtr elements() const override;
     INotationStylePtr style() const override;
     INotationAccessibilityPtr accessibility() const override;
+    INotationLiveBraillePtr livebraille() const override;
     INotationPartsPtr parts() const override;
 
     async::Notification notationChanged() const override;
@@ -101,6 +102,7 @@ private:
     INotationStylePtr m_style = nullptr;
     INotationMidiInputPtr m_midiInput = nullptr;
     INotationAccessibilityPtr m_accessibility = nullptr;
+    INotationLiveBraillePtr m_livebraille = nullptr;
     INotationElementsPtr m_elements = nullptr;
 };
 }
