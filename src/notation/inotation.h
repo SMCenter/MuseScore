@@ -34,6 +34,7 @@
 #include "inotationelements.h"
 #include "inotationinteraction.h"
 #include "inotationaccessibility.h"
+#include "inotationlivebraille.h"
 #include "inotationmidiinput.h"
 #include "inotationparts.h"
 #include "notationtypes.h"
@@ -90,6 +91,9 @@ public:
 
     // accessibility
     virtual INotationAccessibilityPtr accessibility() const = 0;
+
+    // live braille
+    virtual INotationLiveBraillePtr livebraille() const = 0;
 
     // parts
     virtual INotationPartsPtr parts() const = 0;
