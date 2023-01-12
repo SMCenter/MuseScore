@@ -50,6 +50,7 @@
 #include "view/notationnavigator.h"
 #include "view/selectionfiltermodel.h"
 #include "view/editgridsizedialogmodel.h"
+#include "view/livebraillemodel.h"
 
 #include "view/pianokeyboard/pianokeyboardview.h"
 #include "view/pianokeyboard/pianokeyboardpanelcontextmenumodel.h"
@@ -191,6 +192,7 @@ void NotationModule::registerUiTypes()
     qmlRegisterType<EditGridSizeDialogModel>("MuseScore.NotationScene", 1, 0, "EditGridSizeDialogModel");
     qmlRegisterType<PianoKeyboardView>("MuseScore.NotationScene", 1, 0, "PianoKeyboardView");
     qmlRegisterType<PianoKeyboardPanelContextMenuModel>("MuseScore.NotationScene", 1, 0, "PianoKeyboardPanelContextMenuModel");
+    qmlRegisterType<LiveBrailleModel>("MuseScore.NotationScene", 1, 0, "LiveBrailleModel");
 
     qmlRegisterUncreatableType<StyleItem>("MuseScore.NotationScene", 1, 0, "StyleItem", "Cannot create StyleItem from QML");
     qmlRegisterType<NotesPageModel>("MuseScore.NotationScene", 1, 0, "NotesPageModel");
