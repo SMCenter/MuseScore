@@ -183,6 +183,8 @@ add_subdirectory(share)
 add_subdirectory(src/framework/global) # should be first to work pch
 add_subdirectory(src)
 
+add_subdirectory(thirdparty/liblouis)
+
 ###########################################
 # Setup the KDDockWidgets lib
 ###########################################
