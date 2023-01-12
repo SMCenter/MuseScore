@@ -32,6 +32,10 @@ import "internal"
 FocusScope {
     id: root
 
+    LiveBrailleModel {
+        id: lbmodel
+    }
+
     property alias name: notationView.objectName
     property alias publishMode: notationView.publishMode
 
@@ -172,6 +176,19 @@ FocusScope {
                         notationNavigator.item.setCursorRect(viewport)
                     }
                 }
+            }
+
+            Flickable {
+                SplitView.fillWidth: true
+                SplitView.preferredHeight: 50
+                SplitView.minimumHeight: 30
+
+                TextArea.flickable: TextArea {
+                    id: livebrailleinfo
+                    text: lbmodel.liveBrailleInfo
+                    wrapMode: Text.AlignLeft
+                }
+                ScrollBar.vertical: ScrollBar {}
             }
 
             Component {
