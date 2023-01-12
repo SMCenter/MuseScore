@@ -66,6 +66,7 @@ public:
     async::Notification currentNotationStyleChanged() const;
 
     INotationAccessibilityPtr currentNotationAccessibility() const;
+    INotationLiveBraillePtr currentNotationLiveBraille() const;
 
     using EngravingDebuggingOptions = engraving::IEngravingConfiguration::DebuggingOptions;
     static const std::unordered_map<actions::ActionCode, bool EngravingDebuggingOptions::*> engravingDebuggingActions;
@@ -108,7 +109,6 @@ private:
     void addTie();
     void chordTie();
     void addSlur();
-    void addFret(int num);
 
     framework::IInteractive::Result showErrorMessage(const std::string& message) const;
 

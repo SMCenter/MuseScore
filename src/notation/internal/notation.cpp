@@ -38,6 +38,7 @@
 #include "notationstyle.h"
 #include "notationelements.h"
 #include "notationaccessibility.h"
+#include "notationlivebraille.h"
 #include "notationmidiinput.h"
 #include "notationparts.h"
 #include "notationtypes.h"
@@ -53,6 +54,7 @@ Notation::Notation(mu::engraving::Score* score)
     m_interaction = std::make_shared<NotationInteraction>(this, m_undoStack);
     m_midiInput = std::make_shared<NotationMidiInput>(this, m_interaction, m_undoStack);
     m_accessibility = std::make_shared<NotationAccessibility>(this);
+    m_livebraille = std::make_shared<NotationLiveBraille>(this);
     m_parts = std::make_shared<NotationParts>(this, m_interaction, m_undoStack);
     m_style = std::make_shared<NotationStyle>(this, m_undoStack);
     m_elements = std::make_shared<NotationElements>(this);
@@ -110,6 +112,7 @@ Notation::~Notation()
     m_interaction = nullptr;
     m_midiInput = nullptr;
     m_accessibility = nullptr;
+    m_livebraille = nullptr;
     m_style = nullptr;
     m_elements = nullptr;
     m_painting = nullptr;
@@ -286,6 +289,11 @@ mu::async::Notification Notation::notationChanged() const
 INotationAccessibilityPtr Notation::accessibility() const
 {
     return m_accessibility;
+}
+
+INotationLiveBraillePtr Notation::livebraille() const
+{
+    return m_livebraille;
 }
 
 INotationPartsPtr Notation::parts() const

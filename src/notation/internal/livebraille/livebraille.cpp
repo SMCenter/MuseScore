@@ -76,6 +76,7 @@
 #include "libmscore/types.h"
 #include "libmscore/fingering.h"
 #include "libmscore/mmrest.h"
+#include "libmscore/lyrics.h"
 
 #include "containers.h"
 
@@ -85,6 +86,8 @@ using namespace mu;
 using namespace mu::engraving;
 
 namespace mu::notation::livebraille {
+// Max lyrics num
+#define MAX_LYRICS_NUM                  16
 // Table 1. Page 2. Music Braille Code 2015.
 #define BRAILLE_EQUALS_METRONOME        QString("7")
 #define BRAILLE_MUSICAL_HYPEN           QString("\"")
@@ -548,6 +551,7 @@ public:
     }
 
     bool write(QIODevice& device);
+    bool writeMeasure(QIODevice& destinationDevice, mu::engraving::Measure* m);
 };
 
 LiveBraille::LiveBraille(Score* score)
@@ -563,6 +567,11 @@ LiveBraille::~LiveBraille()
 bool LiveBraille::write(QIODevice& device)
 {
     return m_impl->write(device);
+}
+
+bool LiveBraille::writeMeasure(QIODevice& device, mu::engraving::Measure* m)
+{
+    return m_impl->writeMeasure(device, m);
 }
 
 void LiveBrailleImpl::resetOctave(size_t stave)
@@ -638,6 +647,114 @@ bool LiveBrailleImpl::write(QIODevice& device)
         if (!mb->isMeasure()) {
             continue;
         }
+        currentMeasureMaxLength = 0;
+        Measure* m = toMeasure(mb);
+        // if we are at the beginning of the line
+        // we write the measure number
+        if (currentLineLength == 0) {
+            TextToUEBBraille textToBraille;
+            QString measureNumber = textToBraille.braille(QString::number(m->no() + 1)).remove(0, 1) + " ";
+            int measureNumberLen = measureNumber.size();
+            line[0] += measureNumber;
+            for (size_t i = 1; i < nrStaves; i++) {
+                line[i] += QString("").leftJustified(measureNumberLen);
+            }
+            currentLineLength += measureNumberLen;
+        }
+
+        if (m->hasMMRest() && score->styleB(Sid::createMultiMeasureRests)) {
+            mb = m = m->mmRest();
+        }
+
+        for (size_t i = 0; i < nrStaves; ++i) {
+            LOGD() << "Measure " << mb->no() + 1 << " Staff " << i;
+
+            measureBraille[i] = brailleMeasure(m, static_cast<int>(i)).toUtf8();
+
+            if (measureBraille[i].size() > currentMeasureMaxLength) {
+                currentMeasureMaxLength = measureBraille[i].size();
+            }
+        }
+
+        LOGD() << "Current measure max len: " << currentMeasureMaxLength;
+        // TODO handle better the case when the size of the current measure
+        // by itself is larger than the MAX_CHARS_PER_LINE. The measure will
+        // have to be split on multiple lines based on specific rules
+        if ((currentMeasureMaxLength + currentLineLength > MAX_CHARS_PER_LINE) && !measureAboveMax) {
+            QTextStream out(&device);
+            for (size_t i = 0; i < nrStaves; ++i) {
+                out << line[i].toUtf8() << Qt::endl;
+                line[i] = QString();
+            }
+            out.flush();
+            currentLineLength = 0;
+            // We need to re-render the current measure
+            // as it will be on a new line.
+            mb = mb->prev();
+            // 3.2.1. Page 53. Music Braille Code 2015.
+            // The octave is always marked for the first note of a braille line
+            resetOctaves();
+            if (currentMeasureMaxLength >= (MAX_CHARS_PER_LINE - 4)) {
+                measureAboveMax = true;
+            }
+            continue;
+        }
+
+        currentLineLength += currentMeasureMaxLength;
+        for (size_t i = 0; i < nrStaves; ++i) {
+            line[i] += measureBraille[i].leftJustified(currentMeasureMaxLength);
+            measureBraille[i] = QString();
+        }
+
+        if (measureAboveMax || m->sectionBreak()) {
+            QTextStream out(&device);
+            for (size_t i = 0; i < nrStaves; ++i) {
+                out << line[i].toUtf8() << Qt::endl;
+                line[i] = QString();
+            }
+            currentLineLength = 0;
+            // 3.2.1. Page 53. Music Braille Code 2015.
+            // The octave is always marked for the first note of a braille line
+            resetOctaves();
+            measureAboveMax = false;
+            if (m->sectionBreak()) {
+                out << Qt::endl;
+            }
+            out.flush();
+        }
+    }
+
+    // Write the last measures
+    QTextStream out(&device);
+    for (size_t i = 0; i < nrStaves; ++i) {
+        out << line[i].toUtf8() << Qt::endl;
+        line[i] = QString();
+    }
+    out.flush();
+
+    return true;
+}
+
+bool LiveBrailleImpl::writeMeasure(QIODevice& device, Measure* measure)
+{
+    //credits(device);
+    //instruments(device);
+    size_t nrStaves = score->staves().size();
+    std::vector<QString> measureBraille(nrStaves);
+    std::vector<QString> line(nrStaves + 1);
+    int currentLineLength = 0;
+    int currentMeasureMaxLength = 0;
+    bool measureAboveMax = false;
+
+    for (MeasureBase* mb = score->measures()->first(); mb != nullptr; mb = mb->next()) {
+        if (!mb->isMeasure()) {
+            continue;
+        }
+
+        if (mb != measure) {
+            continue;
+        }
+
         currentMeasureMaxLength = 0;
         Measure* m = toMeasure(mb);
         // if we are at the beginning of the line
@@ -1038,6 +1155,8 @@ QString LiveBrailleImpl::brailleMeasure(Measure* measure, int staffCount)
     QString rez;
     QTextStream out(&rez);
 
+    LOGD("LiveBrailleImpl::brailleMeasure %d", staffCount);
+
     //Render all repeats and jumps that are on the left
     for (EngravingItem* el : measure->el()) {
         if (el->isMarker()) {
@@ -1062,6 +1181,39 @@ QString LiveBrailleImpl::brailleMeasure(Measure* measure, int staffCount)
         }
     }
 
+    QString lyrics[MAX_LYRICS_NUM];
+    for (auto seg = measure->first(); seg; seg = seg->next()) {
+        if (!seg->isChordRestType()) {
+            continue;
+        }
+        for (voice_idx_t voice = 0; voice < VOICES; ++voice) {
+            if (measure->hasVoice(staffCount * VOICES + voice)) {
+                ChordRest* cr = seg->cr(staffCount * VOICES + voice);
+                if (cr && !cr->lyrics().empty()) {
+                    for (Lyrics* l : cr->lyrics()) {
+                        int no = l->no();
+                        switch (l->syllabic()) {
+                        case Lyrics::Syllabic::SINGLE: case Lyrics::Syllabic::BEGIN:
+                            if (!lyrics[no].isEmpty()) {
+                                lyrics[no].append(" ");
+                            }
+                            lyrics[no].append(l->plainText());
+                            break;
+                        case Lyrics::Syllabic::END: case Lyrics::Syllabic::MIDDLE:
+                            lyrics[no].append(l->plainText());
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    LOGD("Lyrics:");
+    for (int i=0; i < MAX_LYRICS_NUM; i++) {
+        if (!lyrics[i].isEmpty()) {
+            LOGD(lyrics[i].toStdString().c_str());
+        }
+    }
     //Render everything that is in Voice 1
     for (auto seg = measure->first(); seg; seg = seg->next()) {
         for (EngravingItem* annotation : seg->annotations()) {

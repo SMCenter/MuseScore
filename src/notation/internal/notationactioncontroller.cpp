@@ -474,7 +474,7 @@ void NotationActionController::init()
     registerTabPadNoteAction("pad-note-1024-TAB", Pad::NOTE1024);
 
     for (int i = 0; i < MAX_FRET; ++i) {
-        registerAction("fret-" + std::to_string(i), [i, this]() { addFret(i); }, &Controller::isTablatureStaff);
+        registerAction("fret-" + std::to_string(i), &Interaction::addFret, i, &Controller::isTablatureStaff);
     }
 
     // listen on state changes
@@ -609,6 +609,16 @@ INotationAccessibilityPtr NotationActionController::currentNotationAccessibility
     }
 
     return notation->accessibility();
+}
+
+INotationLiveBraillePtr NotationActionController::currentNotationLiveBraille() const
+{
+    auto notation = currentNotation();
+    if (!notation) {
+        return nullptr;
+    }
+
+    return notation->livebraille();
 }
 
 void NotationActionController::resetState()
@@ -1137,17 +1147,6 @@ void NotationActionController::addSlur()
     } else {
         interaction->addSlurToSelection();
     }
-}
-
-void NotationActionController::addFret(int num)
-{
-    auto interaction = currentNotationInteraction();
-    if (!interaction) {
-        return;
-    }
-
-    interaction->addFret(num);
-    playSelectedElement(currentNotationElements()->msScore()->playChord());
 }
 
 IInteractive::Result NotationActionController::showErrorMessage(const std::string& message) const
@@ -1854,10 +1853,6 @@ void NotationActionController::playSelectedElement(bool playChord)
     }
 
     playbackController()->playElements({ element });
-
-    mu::engraving::Score* score = currentNotationElements()->msScore();
-    score->setPlayChord(false);
-    score->setPlayNote(false);
 }
 
 void NotationActionController::startNoteInputIfNeed()

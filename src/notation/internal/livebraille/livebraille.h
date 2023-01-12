@@ -26,6 +26,7 @@
 
 namespace mu::engraving {
 class Score;
+class Measure;
 }
 
 namespace mu::notation::livebraille {
@@ -37,6 +38,7 @@ public:
     ~LiveBraille();
 
     bool write(QIODevice& destinationDevice);
+    bool writeMeasure(QIODevice& destinationDevice, mu::engraving::Measure* m);
 
 private:
     LiveBrailleImpl* m_impl = nullptr;
