@@ -42,6 +42,7 @@ set(MODULE_SRC
     ${CMAKE_CURRENT_LIST_DIR}/internal/inotationundostack.h
     ${CMAKE_CURRENT_LIST_DIR}/inotationstyle.h
     ${CMAKE_CURRENT_LIST_DIR}/inotationaccessibility.h
+    ${CMAKE_CURRENT_LIST_DIR}/inotationlivebraille.h
     ${CMAKE_CURRENT_LIST_DIR}/inotationmidiinput.h
     ${CMAKE_CURRENT_LIST_DIR}/notationtypes.h
     ${CMAKE_CURRENT_LIST_DIR}/inotationconfiguration.h
@@ -84,6 +85,7 @@ set(MODULE_SRC
     ${CMAKE_CURRENT_LIST_DIR}/internal/notationinteraction.cpp
     ${CMAKE_CURRENT_LIST_DIR}/internal/notationinteraction.h
     ${CMAKE_CURRENT_LIST_DIR}/internal/notationaccessibility.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/internal/notationlivebraille.cpp
     ${CMAKE_CURRENT_LIST_DIR}/internal/notationconfiguration.cpp
     ${CMAKE_CURRENT_LIST_DIR}/internal/notationconfiguration.h
     ${CMAKE_CURRENT_LIST_DIR}/internal/positionswriter.cpp
@@ -105,6 +107,11 @@ set(MODULE_SRC
     ${CMAKE_CURRENT_LIST_DIR}/internal/inotationselectionrange.h
     ${CMAKE_CURRENT_LIST_DIR}/internal/instrumentsrepository.cpp
     ${CMAKE_CURRENT_LIST_DIR}/internal/instrumentsrepository.h
+
+    ${CMAKE_CURRENT_LIST_DIR}/internal/livebraille/livebraille.h
+    ${CMAKE_CURRENT_LIST_DIR}/internal/livebraille/livebraille.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/internal/livebraille/louis.hpp
+    ${CMAKE_CURRENT_LIST_DIR}/internal/livebraille/louis.cpp
 
     ${CMAKE_CURRENT_LIST_DIR}/view/abstractnotationpaintview.cpp
     ${CMAKE_CURRENT_LIST_DIR}/view/abstractnotationpaintview.h
@@ -146,6 +153,8 @@ set(MODULE_SRC
     ${CMAKE_CURRENT_LIST_DIR}/view/selectionfiltermodel.h
     ${CMAKE_CURRENT_LIST_DIR}/view/editgridsizedialogmodel.cpp
     ${CMAKE_CURRENT_LIST_DIR}/view/editgridsizedialogmodel.h
+    ${CMAKE_CURRENT_LIST_DIR}/view/livebraillemodel.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/view/livebraillemodel.h
     
     ${CMAKE_CURRENT_LIST_DIR}/view/pianokeyboard/pianokeyboardtypes.h
     ${CMAKE_CURRENT_LIST_DIR}/view/pianokeyboard/pianokeyboardcontroller.cpp
@@ -178,6 +187,7 @@ set(MODULE_LINK
     commonscene
     uicomponents
     ui
+    liblouis
     )
 
 if (NOT MSVC AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 9.0)
