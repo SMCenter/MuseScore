@@ -73,7 +73,6 @@ option(BUILD_UPDATE_MODULE "Build update module" ON)
 option(BUILD_VIDEOEXPORT_MODULE "Build videoexport module" OFF) # currently work only on Ubuntu 18.04 (for backend)
 option(BUILD_DIAGNOSTICS "Build diagnostic code" ON)
 option(BUILD_CRASHPAD_CLIENT "Build crashpad client" ON)
-option(CRASHPAD_HANDLER_PATH "Path to custom crashpad_handler executable (optional)" "")
 set(YOUTUBE_API_KEY "" CACHE STRING "YouTube API key")
 
 option(ENGRAVING_PAINT_DEBUGGER_ENABLED "Enable diagnostic engraving paint debugger" OFF)
@@ -214,6 +213,8 @@ endif(BUILD_UNIT_TESTS)
 add_subdirectory(share)
 add_subdirectory(src/framework/global) # should be first to work pch
 add_subdirectory(src)
+
+add_subdirectory(thirdparty/liblouis)
 
 ###########################################
 # Setup the KDDockWidgets lib
