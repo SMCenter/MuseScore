@@ -4,7 +4,7 @@
 # MuseScore
 # Music Composition & Notation
 #
-# Copyright (C) 2021 MuseScore BVBA and others
+# Copyright (C) 2023 MuseScore BVBA and others
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License version 3 as
@@ -18,10 +18,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-subdirs(autobotscripts icons templates wallpapers locale styles sound manual instruments tables)
-
-install (DIRECTORY
-      plugins
-      DESTINATION ${Mscore_SHARE_NAME}${Mscore_INSTALL_NAME}
-      PATTERN ".*" EXCLUDE
-      )
+install(FILES
+    ascii-to-unicode.dis
+    ascii-us-patterns.cti
+    en-us-symbols.mus
+    fr.mus
+    it.mus
+    smufl-symbols.mus
+    unicode-to-ascii.dis
+    DESTINATION ${Mscore_SHARE_NAME}${Mscore_INSTALL_NAME}tables
+)
