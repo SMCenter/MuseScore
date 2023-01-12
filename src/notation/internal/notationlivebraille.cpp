@@ -51,7 +51,7 @@ using namespace mu::notation::livebraille;
 NotationLiveBraille::NotationLiveBraille(const Notation* notation)
     : m_getScore(notation)
 {    
-    path_t tablesdir = tablesDefaultDirPath();
+    path_t tablesdir = tablesDefaultDirPath();    
     setTablesDir(tablesdir.toStdString().c_str());
 
     std::string welcome = braille_translate("unicode.dis,en-us-g2.ctb", "Welcome to MuseScore 4.0!");
