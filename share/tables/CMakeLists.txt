@@ -438,5 +438,7 @@ install(FILES
 	zh-tw.ctb
 	zu-za-g1.utb
 	zu-za-g2.ctb
+	ascii-us-patterns.cti
+	ascii-to-unicode.dis
       DESTINATION ${Mscore_SHARE_NAME}${Mscore_INSTALL_NAME}tables
       )
