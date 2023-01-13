@@ -47,6 +47,7 @@ jobs:
         restore-keys: ${{github.workflow}}-ccache-  # restore ccache from either previous build on this branch or on master  
     - name: Setup ccache
       run: |
+        sudo apt update 
         sudo bash ./build/ci/tools/setup_ccache.sh     
     - name: "Configure workflow"
       env:
@@ -137,8 +138,7 @@ jobs:
 
     - name: Setup environment
       if: env.DO_BUILD == 'true'
-      run: |
-        sudo apt update 
+      run: |        
         sudo bash ./build/ci/linux/setup.sh
     - name: Generate _en.ts files
       if: env.DO_BUILD == 'true'
