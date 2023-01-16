@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <iostream>
 #include <sstream>
+#include <vector>
 
 #include "thirdparty/liblouis/liblouis/internal.h"
 #include "thirdparty/liblouis/liblouis/liblouis.h"
@@ -159,6 +160,11 @@ FUNC(const SRC_UNIT* s, size_t n, DST_UNIT* resultbuf, size_t* lengthp)
     return result;
 }
 
+std::string table_unicode_to_ascii = "unicode-to-ascii.dis";
+std::string table_ascii_to_unicode = "ascii-to-unicode.dis";
+std::string table_for_literature = "unicode.dis,en-us-g2.ctb";
+std::string table_for_general = "unicode.dis,en-us-symbols.mus";
+
 std::string braille_translate(const char* table_name, std::string txt)
 {
     //cout << "braille_translate " << table_name << " " << txt << "\n";
@@ -205,4 +211,83 @@ char* setTablesDir(const char* tablesdir)
 char* getTablesDir()
 {
     return lou_getDataPath();
+}
+
+std::vector<std::string> split_string(std::string txt, int width)
+{
+    std::vector<std::string> lines;
+
+    QString str = QString::fromStdString(txt);
+
+    int len = str.length();
+
+    if (len <= width) {
+        lines.push_back(txt);
+        return lines;
+    }
+
+    while (len > width) {
+        int idx = width - 1;
+        for (; idx >= 0; idx--) {
+            QString ch = str.left(idx).right(1);
+            if (ch == "⠀") {
+                break;
+            }
+        }
+        if (idx == 0 || idx == -1) {
+            idx = width;
+        }
+
+        QString line = str.left(idx);
+
+        str = str.right(len - idx);
+        len = str.length();
+        lines.push_back(line.toStdString());
+    }
+    if (len > 0) {
+        lines.push_back(str.toStdString());
+    }
+    return lines;
+}
+
+std::string braille_long_translate(const char* table_name, std::string txt)
+{
+    std::vector<std::string> lines = split_string(txt, 256);
+
+    if (lines.size() == 0) {
+        return "";
+    }
+
+    std::string buffer = braille_translate(table_name, lines.front());
+
+    for (size_t i = 1; i < lines.size(); i++) {
+        std::string txt = lines[i] + " ";
+        buffer.append(braille_translate(table_name, txt));
+    }
+    return buffer;
+}
+
+std::string braille_multi_line_translate(const char* table_name, std::string txt)
+{
+    std::stringstream ss(txt);
+    std::string line;
+
+    std::string buffer = "";
+
+    while (std::getline(ss, line)) {
+        if (line == "[EOP]" || line == "[NP]") {
+            buffer.append(line).append("\n");
+        } else {
+            std::string converted = braille_translate(table_name, line);
+            buffer.append(converted).append("\n");
+        }
+    }
+
+    return buffer;
+}
+
+int get_braille_text_length(const char* table_name, std::string txt)
+{
+    std::string buffer = braille_translate(table_name, txt);
+    return QString::fromStdString(txt).length();
 }

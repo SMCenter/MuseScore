@@ -82,6 +82,8 @@
 
 #include "log.h"
 
+#include "louis.h"
+
 using namespace mu;
 using namespace mu::engraving;
 
@@ -331,6 +333,139 @@ namespace mu::notation::livebraille {
 #define BRAILLE_UP_BOW                  QString("<'")
 #define BRAILLE_LEFT_HAND_PIZZICATO     QString("_>")
 
+//[Support Braill functions]
+//#upper numbers
+std::string Braille_UpperNumbers[] = { "245", "1", "12", "14", "145",
+                                       "15", "124", "1245", "125", "24" };
+//#lower numbers
+std::string Braille_LowerNumbers[] = { "356", "2", "23", "25", "256",
+                                       "26", "235", "2356", "236", "35" };
+//# Lyrics indicator
+std::string Braille_LyricLineIndicator = "56-23";
+//# Numbers indicator
+std::string Braille_NumIndicator = "3456";
+
+std::string getBraillePattern(std::string dots)
+{
+    const char* dotc = dots.c_str();
+    int d = atoi(dotc);
+    switch (d) {
+    case 0: return " ";
+    case 1: return "⠁";
+    case 2: return "⠂";
+    case 12: return "⠃";
+    case 3: return "⠄";
+    case 13: return "⠅";
+    case 23: return "⠆";
+    case 123: return "⠇";
+    case 4: return "⠈";
+    case 14: return "⠉";
+    case 24: return "⠊";
+    case 124: return "⠋";
+    case 34: return "⠌";
+    case 134: return "⠍";
+    case 234: return "⠎";
+    case 1234: return "⠏";
+
+    case 5: return "⠐";
+    case 15: return "⠑";
+    case 25: return "⠒";
+    case 125: return "⠓";
+    case 35: return "⠔";
+    case 135: return "⠕";
+    case 235: return "⠖";
+    case 1235: return "⠗";
+    case 45: return "⠘";
+    case 145: return "⠙";
+    case 245: return "⠚";
+    case 1245: return "⠛";
+    case 345: return "⠜";
+    case 1345: return "⠝";
+    case 2345: return "⠞";
+    case 12345: return "⠟";
+
+    case 6: return "⠠";
+    case 16: return "⠡";
+    case 26: return "⠢";
+    case 126: return "⠣";
+    case 36: return "⠤";
+    case 136: return "⠥";
+    case 236: return "⠦";
+    case 1236: return "⠧";
+    case 46: return "⠨";
+    case 146: return "⠩";
+    case 246: return "⠪";
+    case 1246: return "⠫";
+    case 346: return "⠬";
+    case 1346: return "⠭";
+    case 2346: return "⠮";
+    case 12346: return "⠯";
+
+    case 56: return "⠰";
+    case 156: return "⠱";
+    case 256: return "⠲";
+    case 1256: return "⠳";
+    case 356: return "⠴";
+    case 1356: return "⠵";
+    case 2356: return "⠶";
+    case 12356: return "⠷";
+    case 456: return "⠸";
+    case 1456: return "⠹";
+    case 2456: return "⠺";
+    case 12456: return "⠻";
+    case 3456: return "⠼";
+    case 13456: return "⠽";
+    case 23456: return "⠾";
+    case 123456: return "⠿";
+    }
+    return " ";
+}
+
+std::string translate2Braille(std::string codes)
+{
+    std::stringstream test(codes);
+    std::string segment;
+    std::vector<std::string> seglist;
+
+    std::string txt = "";
+    while (std::getline(test, segment, '-')) {
+        txt.append(getBraillePattern(segment));
+    }
+    return txt;
+}
+
+std::string intToBrailleUpperNumbers(std::string txt, bool indicator)
+{
+    std::string braille = "";
+    if (indicator) {
+        braille.append(translate2Braille(Braille_NumIndicator));
+    }
+
+    for (size_t i=0; i < txt.length(); i++) {
+        char c = txt.at(i);
+        if (c - '0' <= 9) {
+            braille.append(translate2Braille(Braille_UpperNumbers[c - '0']));
+        }
+    }
+    return braille;
+}
+
+std::string intToBrailleLowerNumbers(std::string txt, bool indicator)
+{
+    std::string braille = "";
+    if (indicator) {
+        braille.append(Braille_NumIndicator);
+    }
+
+    for (size_t i=0; i < txt.length(); i++) {
+        char c = txt.at(i);
+        if (c - '0' <= 9) {
+            braille.append(Braille_LowerNumbers[c - '0']);
+        }
+    }
+    return braille;
+}
+
 //This class currently supports just a limited conversion from text to braille
 //TODO: enhance it to have full support from text to UEB, including contractions
 //http://www.brailleauthority.org/learn/braillebasic.pdf
@@ -504,6 +639,8 @@ class LiveBrailleImpl
     BarLine* firstBarline(Measure* measure, track_idx_t track);
 
     QString brailleMeasure(Measure* measure, int staffCount);
+    QString brailleMeasureLyrics(Measure* measure, int staffCount);
+
     QString brailleClef(Clef* clef);
     QString brailleTimeSig(TimeSig* timeSig);
     QString brailleMMRest(MMRest* mmRest);
@@ -639,6 +776,7 @@ bool LiveBrailleImpl::write(QIODevice& device)
     size_t nrStaves = score->staves().size();
     std::vector<QString> measureBraille(nrStaves);
     std::vector<QString> line(nrStaves + 1);
+    std::vector<QString> lyrics(nrStaves + 1);
     int currentLineLength = 0;
     int currentMeasureMaxLength = 0;
     bool measureAboveMax = false;
@@ -667,8 +805,6 @@ bool LiveBrailleImpl::write(QIODevice& device)
         }
 
         for (size_t i = 0; i < nrStaves; ++i) {
-            LOGD() << "Measure " << mb->no() + 1 << " Staff " << i;
-
             measureBraille[i] = brailleMeasure(m, static_cast<int>(i)).toUtf8();
 
             if (measureBraille[i].size() > currentMeasureMaxLength) {
@@ -710,7 +846,10 @@ bool LiveBrailleImpl::write(QIODevice& device)
             QTextStream out(&device);
             for (size_t i = 0; i < nrStaves; ++i) {
                 out << line[i].toUtf8() << Qt::endl;
-                line[i] = QString();
+                if (!lyrics[i].isEmpty()) {
+                    out << lyrics[i].toUtf8() << Qt::endl;
+                }
+                line[i] = lyrics[i] = QString();
             }
             currentLineLength = 0;
             // 3.2.1. Page 53. Music Braille Code 2015.
@@ -737,11 +876,10 @@ bool LiveBrailleImpl::write(QIODevice& device)
 
 bool LiveBrailleImpl::writeMeasure(QIODevice& device, Measure* measure)
 {
-    //credits(device);
-    //instruments(device);
     size_t nrStaves = score->staves().size();
     std::vector<QString> measureBraille(nrStaves);
     std::vector<QString> line(nrStaves + 1);
+    std::vector<QString> lyrics(nrStaves + 1);
     int currentLineLength = 0;
     int currentMeasureMaxLength = 0;
     bool measureAboveMax = false;
@@ -760,8 +898,10 @@ bool LiveBrailleImpl::writeMeasure(QIODevice& device, Measure* measure)
         // if we are at the beginning of the line
         // we write the measure number
         if (currentLineLength == 0) {
-            TextToUEBBraille textToBraille;
-            QString measureNumber = textToBraille.braille(QString::number(m->no() + 1)).remove(0, 1) + " ";
+            //TextToUEBBraille textToBraille;
+            //QString measureNumber = textToBraille.braille(QString::number(m->no() + 1)).remove(0, 1) + " ";
+            QString num = QString::number(m->no() + 1);
+            QString measureNumber = QString::fromStdString(intToBrailleUpperNumbers(num.toStdString(), false)).append(" ");
             int measureNumberLen = measureNumber.size();
             line[0] += measureNumber;
             for (size_t i = 1; i < nrStaves; i++) {
@@ -775,10 +915,10 @@ bool LiveBrailleImpl::writeMeasure(QIODevice& device, Measure* measure)
         }
 
         for (size_t i = 0; i < nrStaves; ++i) {
-            LOGD() << "Measure " << mb->no() + 1 << " Staff " << i;
-
             measureBraille[i] = brailleMeasure(m, static_cast<int>(i)).toUtf8();
-
+            // translate to unicode braille
+            measureBraille[i]
+                = QString::fromStdString(braille_long_translate(table_ascii_to_unicode.c_str(), measureBraille[i].toStdString()));
             if (measureBraille[i].size() > currentMeasureMaxLength) {
                 currentMeasureMaxLength = measureBraille[i].size();
             }
@@ -814,10 +954,18 @@ bool LiveBrailleImpl::writeMeasure(QIODevice& device, Measure* measure)
             measureBraille[i] = QString();
         }
 
+        for (size_t i = 0; i < nrStaves; ++i) {
+            lyrics[i] = brailleMeasureLyrics(m, static_cast<int>(i)).toUtf8();
+        }
+
         if (measureAboveMax || m->sectionBreak()) {
             QTextStream out(&device);
             for (size_t i = 0; i < nrStaves; ++i) {
                 out << line[i].toUtf8() << Qt::endl;
+                if (!lyrics[i].isEmpty()) {
+                    out << lyrics[i].toUtf8() << Qt::endl;
+                    lyrics[i] = QString();
+                }
                 line[i] = QString();
             }
             currentLineLength = 0;
@@ -836,8 +984,13 @@ bool LiveBrailleImpl::writeMeasure(QIODevice& device, Measure* measure)
     QTextStream out(&device);
     for (size_t i = 0; i < nrStaves; ++i) {
         out << line[i].toUtf8() << Qt::endl;
+        if (!lyrics[i].isEmpty()) {
+            out << lyrics[i].toUtf8() << Qt::endl;
+            lyrics[i] = QString();
+        }
         line[i] = QString();
     }
+
     out.flush();
 
     return true;
@@ -1154,9 +1307,7 @@ QString LiveBrailleImpl::brailleMeasure(Measure* measure, int staffCount)
 {
     QString rez;
     QTextStream out(&rez);
-
-    LOGD("LiveBrailleImpl::brailleMeasure %d", staffCount);
-
+    //LOGD("LiveBrailleImpl::brailleMeasure %d", staffCount);
     //Render all repeats and jumps that are on the left
     for (EngravingItem* el : measure->el()) {
         if (el->isMarker()) {
@@ -1181,39 +1332,6 @@ QString LiveBrailleImpl::brailleMeasure(Measure* measure, int staffCount)
         }
     }
 
-    QString lyrics[MAX_LYRICS_NUM];
-    for (auto seg = measure->first(); seg; seg = seg->next()) {
-        if (!seg->isChordRestType()) {
-            continue;
-        }
-        for (voice_idx_t voice = 0; voice < VOICES; ++voice) {
-            if (measure->hasVoice(staffCount * VOICES + voice)) {
-                ChordRest* cr = seg->cr(staffCount * VOICES + voice);
-                if (cr && !cr->lyrics().empty()) {
-                    for (Lyrics* l : cr->lyrics()) {
-                        int no = l->no();
-                        switch (l->syllabic()) {
-                        case Lyrics::Syllabic::SINGLE: case Lyrics::Syllabic::BEGIN:
-                            if (!lyrics[no].isEmpty()) {
-                                lyrics[no].append(" ");
-                            }
-                            lyrics[no].append(l->plainText());
-                            break;
-                        case Lyrics::Syllabic::END: case Lyrics::Syllabic::MIDDLE:
-                            lyrics[no].append(l->plainText());
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-    }
-    LOGD("Lyrics:");
-    for (int i=0; i < MAX_LYRICS_NUM; i++) {
-        if (!lyrics[i].isEmpty()) {
-            LOGD(lyrics[i].toStdString().c_str());
-        }
-    }
     //Render everything that is in Voice 1
     for (auto seg = measure->first(); seg; seg = seg->next()) {
         for (EngravingItem* annotation : seg->annotations()) {
@@ -1316,7 +1434,51 @@ QString LiveBrailleImpl::brailleMeasure(Measure* measure, int staffCount)
             }
         }
     }
+
     out.flush();
+    return rez;
+}
+
+QString LiveBrailleImpl::brailleMeasureLyrics(Measure* measure, int staffCount)
+{
+    // LyricIndicator 56-23 -> 8
+    QString lyrics[MAX_LYRICS_NUM];
+    for (auto seg = measure->first(); seg; seg = seg->next()) {
+        if (!seg->isChordRestType()) {
+            continue;
+        }
+        for (voice_idx_t voice = 0; voice < VOICES; ++voice) {
+            if (measure->hasVoice(staffCount * VOICES + voice)) {
+                ChordRest* cr = seg->cr(staffCount * VOICES + voice);
+                if (cr && !cr->lyrics().empty()) {
+                    for (Lyrics* l : cr->lyrics()) {
+                        int no = l->no();
+                        switch (l->syllabic()) {
+                        case Lyrics::Syllabic::SINGLE: case Lyrics::Syllabic::BEGIN:
+                            if (!lyrics[no].isEmpty()) {
+                                lyrics[no].append(" ");
+                            }
+                            lyrics[no].append(l->plainText());
+                            break;
+                        case Lyrics::Syllabic::END: case Lyrics::Syllabic::MIDDLE:
+                            lyrics[no].append(l->plainText());
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    QString rez = QString();
+    for (int i=0; i < MAX_LYRICS_NUM; i++) {
+        if (!lyrics[i].isEmpty()) {
+            std::string line = translate2Braille(Braille_LyricLineIndicator);
+            std::string bl = braille_long_translate(table_for_literature.c_str(), lyrics[i].toStdString());
+            line.append(" ").append(bl);
+            rez.append(QString::fromStdString(line).append("\n"));
+        }
+    }
     return rez;
 }
 

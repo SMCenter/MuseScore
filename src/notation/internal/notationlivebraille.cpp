@@ -81,7 +81,8 @@ NotationLiveBraille::NotationLiveBraille(const Notation* notation)
         if (e) {
             if (!m) {
                 QString txt = e->accessibleInfo();
-                setLiveBrailleInfo(txt);
+                std::string braille = braille_long_translate(table_for_literature.c_str(), txt.toStdString());
+                setLiveBrailleInfo(QString::fromStdString(braille));
                 crmeasure = m;
             } else {
                 if (m != crmeasure) {
@@ -92,16 +93,13 @@ NotationLiveBraille::NotationLiveBraille(const Notation* notation)
                         LiveBraille lb(score());
                         lb.writeMeasure(buf, m);
                         txt = QString(buf.buffer());
-                        //txt = QString("new item in new measure");
+                        setLiveBrailleInfo(txt);
                     } else {
                         txt = QString();
                     }
-                    setLiveBrailleInfo(txt);
                     crmeasure = m;
                 } else {
-                    QString txt;
-                    txt = QString("New item in old measure");
-                    setLiveBrailleInfo(txt);
+                    // TODO: set selected braille text for item
                 }
             }
         }
