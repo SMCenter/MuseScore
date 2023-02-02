@@ -1,6 +1,9 @@
 name: CI_Linux
 
 on:
+  push:
+    branches-ignore:
+    - master
   pull_request:
     branches:
     - master
