@@ -19,6 +19,21 @@
 
 set(MODULE liblouis)
 
+set(WIDECHAR_TYPE "unsigned int") # liblouis.h.in
+set(WIDECHARS_ARE_UCS4 TRUE)      # configMS.h.in
+
+configure_file(
+    ${CMAKE_CURRENT_LIST_DIR}/configMS.h.in
+    ${CMAKE_CURRENT_LIST_DIR}/liblouis/config.h
+    @ONLY
+)
+
+configure_file(
+    ${CMAKE_CURRENT_LIST_DIR}/liblouis/liblouis.h.in
+    ${CMAKE_CURRENT_LIST_DIR}/liblouis/liblouis.h
+    @ONLY
+)
+
 set(MODULE_SRC    
     ${CMAKE_CURRENT_LIST_DIR}/liblouis/commonTranslationFunctions.c
     ${CMAKE_CURRENT_LIST_DIR}/liblouis/liblouis.h
