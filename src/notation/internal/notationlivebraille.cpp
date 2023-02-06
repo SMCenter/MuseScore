@@ -42,6 +42,8 @@
 #include "internal/livebraille/livebraille.h"
 #include "internal/livebraille/louis.h"
 
+#include "log.h"
+
 using namespace mu::notation;
 using namespace mu::async;
 using namespace mu::engraving;
@@ -51,6 +53,8 @@ using namespace mu::notation::livebraille;
 NotationLiveBraille::NotationLiveBraille(const Notation* notation)
     : m_getScore(notation)
 {
+    setCurrentItemPosition(-1, -1);
+
     path_t tablesdir = tablesDefaultDirPath();
     setTablesDir(tablesdir.toStdString().c_str());
 
@@ -77,29 +81,35 @@ NotationLiveBraille::NotationLiveBraille(const Notation* notation)
                 }
             }
             e = m ? m : selection()->elements().front();
+        } else if (selection()->isList()) {
+            e = selection()->elements().front();
+            m = e->findMeasure();
         }
         if (e) {
             if (!m) {
-                QString txt = e->accessibleInfo();
-                std::string braille = braille_long_translate(table_for_literature.c_str(), txt.toStdString());
-                setLiveBrailleInfo(QString::fromStdString(braille));
-                crmeasure = m;
-            } else {
-                if (m != crmeasure) {
-                    QString txt;
-                    if (m) {
-                        QBuffer buf;
-                        buf.open(QBuffer::WriteOnly);
-                        LiveBraille lb(score());
-                        lb.writeMeasure(buf, m);
-                        txt = QString(buf.buffer());
-                        setLiveBrailleInfo(txt);
-                    } else {
-                        txt = QString();
-                    }
-                    crmeasure = m;
+                brailleEngravingItems()->clear();
+                LiveBraille lb(score());
+                bool res = lb.writeItem(brailleEngravingItems(), e);
+                if (!res) {
+                    QString txt = e->accessibleInfo();
+                    std::string braille = braille_long_translate(table_for_literature.c_str(), txt.toStdString());
+                    brailleEngravingItems()->setBrailleStr(QString::fromStdString(braille));
+                    setLiveBrailleInfo(QString::fromStdString(braille));
                 } else {
-                    // TODO: set selected braille text for item
+                    setLiveBrailleInfo(brailleEngravingItems()->brailleStr());
+                }
+                current_measure = nullptr;
+            } else {
+                if (m != current_measure) {
+                    brailleEngravingItems()->clear();
+                    LiveBraille lb(score());
+                    lb.writeMeasure(brailleEngravingItems(), m);
+                    setLiveBrailleInfo(brailleEngravingItems()->brailleStr());
+                    current_measure = m;
+                }
+                std::pair<int, int> pos = brailleEngravingItems()->getBraillePos(e);
+                if (pos.first != -1) {
+                    setCurrentItemPosition(pos.first, pos.second);
                 }
             }
         }
@@ -108,6 +118,8 @@ NotationLiveBraille::NotationLiveBraille(const Notation* notation)
     notation->notationChanged().onNotify(this, [this]() {
         //updateLiveBrailleInfo();
         EngravingItem* e = nullptr;
+        Measure* m = nullptr;
+
         if (selection()->isSingle()) {
             e = selection()->element();
         } else if (selection()->isRange()) {
@@ -124,19 +136,39 @@ NotationLiveBraille::NotationLiveBraille(const Notation* notation)
                 }
             }
             e = m ? m : selection()->elements().front();
+        } else if (selection()->isList()) {
+            e = selection()->elements().front();
+            m = e->findMeasure();
         }
 
         if (e) {
-            QString txt;
-            Measure* m = e->findMeasure();
-            if (m) {
-                //txt = score()->getMusicXmlMeasure4Element(e);
-                txt = QString("musicxml text");
+            if (!m) {
+                brailleEngravingItems()->clear();
+                LiveBraille lb(score());
+                bool res = lb.writeItem(brailleEngravingItems(), e);
+                if (!res) {
+                    QString txt = e->accessibleInfo();
+                    LOGD() << "type " << (int)e->type() << " :" << txt;
+                    std::string braille = braille_long_translate(table_for_literature.c_str(), txt.toStdString());
+                    brailleEngravingItems()->setBrailleStr(QString::fromStdString(braille));
+                    setLiveBrailleInfo(QString::fromStdString(braille));
+                } else {
+                    setLiveBrailleInfo(brailleEngravingItems()->brailleStr());
+                }
+                current_measure = nullptr;
             } else {
-                //txt = QString(notation->accessibility().accessibilityInfo().val);
-                txt = QString("Accessibility text");
+                if (m != current_measure) {
+                    brailleEngravingItems()->clear();
+                    LiveBraille lb(score());
+                    lb.writeMeasure(brailleEngravingItems(), m);
+                    setLiveBrailleInfo(brailleEngravingItems()->brailleStr());
+                    current_measure = m;
+                }
+                std::pair<int, int> pos = brailleEngravingItems()->getBraillePos(e);
+                if (pos.first != -1) {
+                    setCurrentItemPosition(pos.first, pos.second);
+                }
             }
-            setLiveBrailleInfo(txt);
         }
         //LOGD("notationChanged()");
     });
@@ -155,6 +187,21 @@ mu::engraving::Selection* NotationLiveBraille::selection()
 mu::ValCh<std::string> NotationLiveBraille::liveBrailleInfo() const
 {
     return m_liveBrailleInfo;
+}
+
+mu::ValCh<int> NotationLiveBraille::cursorPosition() const
+{
+    return m_cursorPosition;
+}
+
+mu::ValCh<int> NotationLiveBraille::currentItemPositionStart() const
+{
+    return m_currentItemPositionStart;
+}
+
+mu::ValCh<int> NotationLiveBraille::currentItemPositionEnd() const
+{
+    return m_currentItemPositionEnd;
 }
 
 /*
@@ -185,6 +232,16 @@ void NotationLiveBraille::setTriggeredCommand(const std::string& command)
 #endif
 }
 
+livebraille::BrailleEngravingItems* NotationLiveBraille::brailleEngravingItems()
+{
+    return &m_bei;
+}
+
+QString NotationLiveBraille::getBrailleStr()
+{
+    return m_bei.brailleStr();
+}
+
 void NotationLiveBraille::updateLiveBrailleInfo()
 {
     if (!score()) {
@@ -196,6 +253,14 @@ void NotationLiveBraille::updateLiveBrailleInfo()
     setLiveBrailleInfo(newLiveBrailleInfo);
 }
 
+void NotationLiveBraille::updateCursorPosition()
+{
+    if (!score()) {
+        return;
+    }
+    // TODO
+}
+
 void NotationLiveBraille::setLiveBrailleInfo(const QString& info)
 {
     std::string infoStd = info.toStdString();
@@ -205,6 +270,37 @@ void NotationLiveBraille::setLiveBrailleInfo(const QString& info)
     }
 
     m_liveBrailleInfo.set(infoStd);
+}
+
+void NotationLiveBraille::setCursorPosition(const int pos)
+{
+    LOGD("%d", pos);
+
+    if (m_cursorPosition.val == pos) {
+        return;
+    }
+
+    m_cursorPosition.set(pos);
+
+    notation::EngravingItem* el = brailleEngravingItems()->getEngravingItem(pos);
+    if (el != nullptr) {
+        LOGD() << el->accessibleInfo();
+        //score()->select(el, SelectType::SINGLE, el->staffIdx());
+    } else {
+        LOGD() << "Item not found";
+    }
+}
+
+void NotationLiveBraille::setCurrentItemPosition(const int start, const int end)
+{
+    LOGD("NotationLiveBraille::setCurrentItemPosition %d:%d", start, end);
+    if (m_currentItemPositionStart.val == start
+        && m_currentItemPositionEnd.val == end) {
+        return;
+    }
+
+    m_currentItemPositionStart.set(start);
+    m_currentItemPositionEnd.set(end);
 }
 
 path_t NotationLiveBraille::tablesDefaultDirPath() const

@@ -45,6 +45,9 @@ class LiveBrailleModel : public QObject, public async::Asyncable, public actions
     INJECT(notation, notation::INotationConfiguration, notationConfiguration)
 
     Q_PROPERTY(QString liveBrailleInfo READ liveBrailleInfo NOTIFY liveBrailleInfoChanged)
+    Q_PROPERTY(int cursorPosition READ cursorPosition WRITE setCursorPosition NOTIFY cursorPositionChanged)
+    Q_PROPERTY(int currentItemPositionStart READ currentItemPositionStart NOTIFY currentItemChanged)
+    Q_PROPERTY(int currentItemPositionEnd READ currentItemPositionEnd NOTIFY currentItemChanged)
 
 public:
     explicit LiveBrailleModel(QObject* parent = nullptr);
@@ -53,8 +56,16 @@ public:
 
     QString liveBrailleInfo() const;
 
+    int cursorPosition() const;
+    void setCursorPosition(int pos) const;
+
+    int currentItemPositionStart() const;
+    int currentItemPositionEnd() const;
+
 signals:
-    void liveBrailleInfoChanged();
+    void liveBrailleInfoChanged() const;
+    void cursorPositionChanged() const;
+    void currentItemChanged() const;
 
 private:
     notation::INotationPtr notation() const;
@@ -63,6 +74,8 @@ private:
     void onCurrentNotationChanged();
 
     void listenChangesInLiveBraille();
+    void listenCursorPositionChanges();
+    void listenCurrentItemChanges();
 };
 }
 
