@@ -3,7 +3,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <unistd.h> // for getcwd()
 #include <iostream>
 #include <sstream>
 #include <vector>
