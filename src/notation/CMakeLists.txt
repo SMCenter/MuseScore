@@ -187,6 +187,7 @@ set(MODULE_LINK
     commonscene
     uicomponents
     ui
+    # LibLouis
     liblouis 
     )
 
