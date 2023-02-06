@@ -35,6 +35,9 @@
 #include "async/asyncable.h"
 #include "async/notification.h"
 
+#include "internal/livebraille/livebraille.h"
+
+
 namespace Ms {
 class Score;
 class Selection;
@@ -50,30 +53,40 @@ public:
     NotationLiveBraille(const Notation* notation);
 
     ValCh<std::string> liveBrailleInfo() const override;
-
-//    void setMapToScreenFunc(const mu::engraving::AccessibleMapToScreenFunc& func) override;
+    ValCh<int> cursorPosition() const override;
+    ValCh<int> currentItemPositionStart() const override;
+    ValCh<int> currentItemPositionEnd() const override;    
 
     void setEnabled(bool enabled) override;
-
     void setTriggeredCommand(const std::string& command) override;
 
+    void setCursorPosition(const int pos) override;
+    void setCurrentItemPosition(const int, const int) override;
+
+    livebraille::BrailleEngravingItems * brailleEngravingItems();
+    QString getBrailleStr();
 private:    
     engraving::Score* score();
     engraving::Selection* selection();
 
-    Measure * crmeasure = nullptr;
+    Measure * current_measure = nullptr;
 
     void updateLiveBrailleInfo();
+    void updateCursorPosition();
 
-    void setLiveBrailleInfo(const QString& info);
+    void setLiveBrailleInfo(const QString& info);    
 
     io::path_t tablesDefaultDirPath() const;
 
-    //QString rangeAccessibilityInfo() const;
-    //QString singleElementAccessibilityInfo() const;
-
     const IGetScore* m_getScore = nullptr;
+
     ValCh<std::string> m_liveBrailleInfo;
+    ValCh<int> m_cursorPosition;
+    ValCh<int> m_currentItemPositionStart;
+    ValCh<int> m_currentItemPositionEnd;
+
+    livebraille::BrailleEngravingItems m_bei;
+    async::Notification m_selectionChanged;
 };
 }
 

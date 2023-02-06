@@ -33,12 +33,15 @@ public:
     virtual ~INotationLiveBraille() = default;
 
     virtual ValCh<std::string> liveBrailleInfo() const = 0;
-
-    //virtual void setMapToScreenFunc(const mu::engraving::AccessibleMapToScreenFunc& func) = 0;
+    virtual ValCh<int> cursorPosition() const = 0;
+    virtual ValCh<int> currentItemPositionStart() const = 0;
+    virtual ValCh<int> currentItemPositionEnd() const = 0;
 
     virtual void setEnabled(bool enabled) = 0;
-
     virtual void setTriggeredCommand(const std::string& command) = 0;
+
+    virtual void setCursorPosition(const int pos) = 0;
+    virtual void setCurrentItemPosition(const int, const int) = 0;
 };
 
 using INotationLiveBraillePtr = std::shared_ptr<INotationLiveBraille>;

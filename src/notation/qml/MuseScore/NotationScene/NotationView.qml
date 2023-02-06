@@ -32,8 +32,15 @@ import "internal"
 FocusScope {
     id: root
     
-    LiveBrailleModel {
-        id: lbmodel
+    LiveBrailleModel {        
+        id: lbmodel        
+        onCurrentItemChanged: {
+            console.log("onCurrentItemChanged: ", lbmodel.currentItemPositionStart.valueOf(), lbmodel.currentItemPositionEnd.valueOf());
+            if(lbmodel.currentItemPositionStart.valueOf() != -1 &&
+                    lbmodel.currentItemPositionEnd.valueOf() != -1) {
+                livebrailleinfo.select(lbmodel.currentItemPositionStart.valueOf(), lbmodel.currentItemPositionEnd.valueOf());
+            }
+        }
     }  
 
     property alias name: notationView.objectName
@@ -162,7 +169,7 @@ FocusScope {
 
                 property var orientation: notationNavigator.item ? notationNavigator.item.orientation : Qt.Horizontal
 
-                visible: false
+                visible: false                                
 
                 SplitView.preferredHeight: 100
                 SplitView.preferredWidth: 100
@@ -176,20 +183,29 @@ FocusScope {
                         notationNavigator.item.setCursorRect(viewport)
                     }
                 }
-            }
-            
-            Flickable {
-                SplitView.fillWidth: true
-                SplitView.preferredHeight: 50
-                SplitView.minimumHeight: 30
+            }            
+            //NavigationControl {
+                StyledFlickable {
+                    SplitView.fillWidth: true
+                    SplitView.preferredHeight: 50
+                    SplitView.minimumHeight: 30
 
-                TextArea.flickable: TextArea {
-                    id: livebrailleinfo
-                    text: lbmodel.liveBrailleInfo
-                    wrapMode: Text.AlignLeft
+                    TextArea.flickable: TextArea {
+                        id: livebrailleinfo
+                        text: lbmodel.liveBrailleInfo
+                        wrapMode: Text.AlignLeft
+
+                        onCursorPositionChanged: {
+                            console.log("cursor pos: ", livebrailleinfo.cursorPosition);
+                            lbmodel.cursorPosition = livebrailleinfo.cursorPosition;
+                            //console.log("item pos: ", lbmodel.currentItemPositionStart.valueOf(), lbmodel.currentItemPositionEnd.valueOf());
+                            //livebrailleinfo.select(lbmodel.currentItemPositionStart.valueOf(), lbmodel.currentItemPositionEnd.valueOf());
+                        }
+                    }
+
+                    ScrollBar.vertical: ScrollBar {}
                 }
-                ScrollBar.vertical: ScrollBar {}
-            }
+            //}
 
             Component {
                 id: navigatorComp

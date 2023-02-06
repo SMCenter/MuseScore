@@ -40,6 +40,32 @@ QString LiveBrailleModel::liveBrailleInfo() const
     //LOGD("LiveBrailleModel::liveBrailleInfo");
     return livebraille() ? QString::fromStdString(livebraille()->liveBrailleInfo().val) : QString();
 }
+int LiveBrailleModel::cursorPosition() const
+{
+    return livebraille() ? livebraille()->cursorPosition().val : 0;
+}
+
+int LiveBrailleModel::currentItemPositionStart() const
+{
+    return livebraille() ? livebraille()->currentItemPositionStart().val : 0;
+}
+int LiveBrailleModel::currentItemPositionEnd() const
+{
+    return livebraille() ? livebraille()->currentItemPositionEnd().val : 0;
+}
+
+void LiveBrailleModel::setCursorPosition(int pos) const
+{    
+    if(!livebraille()) return;
+
+    if ( livebraille()->cursorPosition().val == pos)
+        return;
+
+    LOGD("LiveBrailleModel::setCursorPosition %d", pos);
+
+    livebraille()->setCursorPosition(pos);
+    //emit currentItemChanged();
+}
 
 void LiveBrailleModel::load()
 {
@@ -58,6 +84,7 @@ void LiveBrailleModel::onCurrentNotationChanged()
     }
 
     listenChangesInLiveBraille();
+    listenCurrentItemChanges();
 }
 
 void LiveBrailleModel::listenChangesInLiveBraille()
@@ -73,6 +100,37 @@ void LiveBrailleModel::listenChangesInLiveBraille()
         emit liveBrailleInfoChanged();
     });
 }
+void LiveBrailleModel::listenCursorPositionChanges()
+{
+    LOGD("LiveBrailleModel::listenCursorPositionChanges");
+    if (!livebraille()) {
+        return;
+    }
+
+    //emit cursorPositionChanged();
+
+    livebraille()->cursorPosition().ch.onReceive(this, [this](const int) {
+        emit cursorPositionChanged();
+    });
+}
+
+void LiveBrailleModel::listenCurrentItemChanges()
+{
+    LOGD("LiveBrailleModel::listenCurrentItemChanges");
+    if (!livebraille()) {
+        return;
+    }
+
+    //emit currentItemChanged();
+
+    livebraille()->currentItemPositionStart().ch.onReceive(this, [this](int) {
+        emit currentItemChanged();
+    });
+
+    livebraille()->currentItemPositionEnd().ch.onReceive(this, [this](int) {
+        emit currentItemChanged();
+    });
+}
 
 INotationPtr LiveBrailleModel::notation() const
 {
@@ -80,7 +138,6 @@ INotationPtr LiveBrailleModel::notation() const
 }
 
 INotationLiveBraillePtr LiveBrailleModel::livebraille() const
-{
-    LOGD("LiveBrailleModel::livebraille");
+{    
     return notation() ? notation()->livebraille() : nullptr;
 }
