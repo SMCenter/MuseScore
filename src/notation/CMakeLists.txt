@@ -187,7 +187,7 @@ set(MODULE_LINK
     commonscene
     uicomponents
     ui
-    liblouis 
+    liblouis
     )
 
 if (NOT MSVC AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 9.0)
