@@ -58,8 +58,10 @@ NotationLiveBraille::NotationLiveBraille(const Notation* notation)
     path_t tablesdir = tablesDefaultDirPath();    
     setTablesDir(tablesdir.toStdString().c_str());
 
-    if(check_tables(table_ascii_to_unicode.c_str()) == -1) {
-        std::string msg = "Check tables " + table_ascii_to_unicode + " failed!";
+    std::string str = tablesdir.toStdString() + "/" + table_ascii_to_unicode;
+
+    if(check_tables(str.c_str()) == -1) {
+        std::string msg = "Check tables " + str + " failed!";
         setLiveBrailleInfo(msg.c_str());
     } else if(check_tables(table_unicode_to_ascii.c_str()) == -1) {
         std::string msg = "Check tables " + table_unicode_to_ascii + " failed!";
