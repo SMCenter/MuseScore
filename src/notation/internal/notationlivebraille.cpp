@@ -58,9 +58,25 @@ NotationLiveBraille::NotationLiveBraille(const Notation* notation)
     path_t tablesdir = tablesDefaultDirPath();    
     setTablesDir(tablesdir.toStdString().c_str());
 
+    if(check_tables(table_ascii_to_unicode.c_str()) == -1) {
+        std::string msg = "Check tables " + table_ascii_to_unicode + " failed!";
+        setLiveBrailleInfo(msg.c_str());
+    } else if(check_tables(table_unicode_to_ascii.c_str()) == -1) {
+        std::string msg = "Check tables " + table_unicode_to_ascii + " failed!";
+        setLiveBrailleInfo(msg.c_str());
+    } else if(check_tables(table_for_literature.c_str()) == -1) {
+        std::string msg = "Check tables " + table_for_literature + " failed!";
+        setLiveBrailleInfo(msg.c_str());
+//    } else if(check_tables(table_for_general.c_str()) == -1) {
+//        std::string msg = "Check tables " + table_for_general + " failed!";
+//        setLiveBrailleInfo(msg.c_str());
+    } else {
+        setLiveBrailleInfo("Check tables succeeded!");
+    }
+
     //std::string welcome = braille_translate("unicode.dis,en-us-g2.ctb", "Welcome to MuseScore 4.0!");
     //setLiveBrailleInfo(QString(welcome.c_str()));
-    setLiveBrailleInfo(QString(tablesdir.toStdString().c_str()));
+    //setLiveBrailleInfo(QString(tablesdir.toStdString().c_str()));
 
     notation->interaction()->selectionChanged().onNotify(this, [this]() {        
         EngravingItem * e = nullptr;
@@ -298,5 +314,5 @@ void NotationLiveBraille::setCurrentItemPosition(const int start, const int end)
 
 path_t NotationLiveBraille::tablesDefaultDirPath() const
 {
-    return globalConfiguration()->appDataPath() + "/tables";
+    return globalConfiguration()->appDataPath() + "tables";
 }

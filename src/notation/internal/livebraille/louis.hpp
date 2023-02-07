@@ -6,7 +6,7 @@
 extern std::string table_ascii_to_unicode;
 extern std::string table_unicode_to_ascii;
 extern std::string table_for_literature;
-extern std::string table_for_general;
+//extern std::string table_for_general;
 
 std::string get_louis_version();
 std::string braille_translate(const char *table_name, std::string txt);
