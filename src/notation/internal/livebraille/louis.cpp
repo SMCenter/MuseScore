@@ -165,6 +165,21 @@ std::string table_ascii_to_unicode = "ascii-to-unicode.dis";
 std::string table_for_literature = "unicode.dis,en-us-g2.ctb";
 std::string table_for_general = "unicode.dis,en-us-symbols.mus";
 
+void initTables(std::string dir)
+{
+    if (dir.empty()) {
+        table_unicode_to_ascii = "unicode-to-ascii.dis";
+        table_ascii_to_unicode = "ascii-to-unicode.dis";
+        table_for_literature = "unicode.dis,en-us-g2.ctb";
+        table_for_general = "unicode.dis,en-us-symbols.mus";
+    } else {
+        table_unicode_to_ascii = dir + "/unicode-to-ascii.dis";
+        table_ascii_to_unicode = dir + "/ascii-to-unicode.dis";
+        table_for_literature = dir + "/unicode.dis," + dir + "/en-us-g2.ctb";
+        table_for_general = dir + "/unicode.dis," + dir + "/en-us-symbols.mus";
+    }
+}
+
 std::string braille_translate(const char* table_name, std::string txt)
 {
     //cout << "braille_translate " << table_name << " " << txt << "\n";
