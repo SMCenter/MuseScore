@@ -56,12 +56,12 @@ NotationLiveBraille::NotationLiveBraille(const Notation* notation)
     setCurrentItemPosition(-1, -1);
 
     path_t tablesdir = tablesDefaultDirPath();    
+
     setTablesDir(tablesdir.toStdString().c_str());
+    initTables(tablesdir.toStdString());
 
-    std::string str = tablesdir.toStdString() + "/" + table_ascii_to_unicode;
-
-    if(check_tables(str.c_str()) == -1) {
-        std::string msg = "Check tables " + str + " failed!";
+    if(check_tables(table_ascii_to_unicode.c_str()) == -1) {
+        std::string msg = "Check tables " + table_ascii_to_unicode + " failed!";
         setLiveBrailleInfo(msg.c_str());
     } else if(check_tables(table_unicode_to_ascii.c_str()) == -1) {
         std::string msg = "Check tables " + table_unicode_to_ascii + " failed!";
@@ -69,9 +69,9 @@ NotationLiveBraille::NotationLiveBraille(const Notation* notation)
     } else if(check_tables(table_for_literature.c_str()) == -1) {
         std::string msg = "Check tables " + table_for_literature + " failed!";
         setLiveBrailleInfo(msg.c_str());
-//    } else if(check_tables(table_for_general.c_str()) == -1) {
-//        std::string msg = "Check tables " + table_for_general + " failed!";
-//        setLiveBrailleInfo(msg.c_str());
+    //} else if(check_tables(table_for_general.c_str()) == -1) {
+    //    std::string msg = "Check tables " + table_for_general + " failed!";
+    //    setLiveBrailleInfo(msg.c_str());
     } else {
         setLiveBrailleInfo("Check tables succeeded!");
     }
