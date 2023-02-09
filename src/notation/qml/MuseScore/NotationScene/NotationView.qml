@@ -194,20 +194,23 @@ FocusScope {
                 TextArea.flickable: TextArea {
                     id: livebrailleinfo
                     text: lbmodel.liveBrailleInfo
-                    wrapMode: Text.AlignLeft
-
-                    Accessible.role: Accessible.EditableText
-                    Accessible.multiLine: true
-                    Accessible.name: qsTr("Live braille")
-                    Accessible.description: qsTr("This is live braille text!")
+                    wrapMode: Text.AlignLeft                    
 
                     NavigationControl {
                         id: fakeNavCtrl2
-                        name: "LiveBraille"
+                        name: "Live Braille"
                         enabled: livebrailleinfo.enabled && livebrailleinfo.visible
-
                         panel: navPanel
                         order: 0
+
+                        accessible.role: MUAccessible.EditableText
+                        accessible.name: "Live Braille"
+                        accessible.visualItem: livebrailleinfo
+                        accessible.text: livebrailleinfo.text
+                        accessible.selectedText: livebrailleinfo.selectedText
+                        accessible.selectionStart: livebrailleinfo.selectionStart
+                        accessible.selectionEnd: livebrailleinfo.selectionEnd
+                        accessible.cursorPosition: livebrailleinfo.cursorPosition
 
                         onActiveChanged: {
                             if (fakeNavCtrl2.active) {
@@ -223,8 +226,7 @@ FocusScope {
                         drawOutsideParent: false
                     }
 
-                    onCursorPositionChanged: {
-                        console.log("cursor pos: ", livebrailleinfo.cursorPosition);
+                    onCursorPositionChanged: {                        
                         lbmodel.cursorPosition = livebrailleinfo.cursorPosition;
                         //console.log("item pos: ", lbmodel.currentItemPositionStart.valueOf(), lbmodel.currentItemPositionEnd.valueOf());
                         //livebrailleinfo.select(lbmodel.currentItemPositionStart.valueOf(), lbmodel.currentItemPositionEnd.valueOf());
