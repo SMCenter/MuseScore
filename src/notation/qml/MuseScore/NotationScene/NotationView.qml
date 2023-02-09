@@ -196,6 +196,11 @@ FocusScope {
                     text: lbmodel.liveBrailleInfo
                     wrapMode: Text.AlignLeft
 
+                    Accessible.role: Accessible.EditableText
+                    Accessible.multiLine: true
+                    Accessible.name: qsTr("Live braille")
+                    Accessible.description: qsTr("This is live braille text!")
+
                     NavigationControl {
                         id: fakeNavCtrl2
                         name: "LiveBraille"
