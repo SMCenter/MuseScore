@@ -193,30 +193,8 @@ FocusScope {
 
                 TextArea.flickable: TextArea {
                     id: livebrailleinfo
-                    text: lbmodel.liveBrailleInfo                                        
+                    text: lbmodel.liveBrailleInfo
                     wrapMode: Text.AlignLeft
-
-                    NavigationControl {
-                        id: fakeNavCtrl2
-                        name: "LiveBraille"
-                        enabled: livebrailleinfo.enabled && livebrailleinfo.visible
-
-                        panel: navPanel
-                        order: fakeNavCtrl.order - 1
-
-                        onActiveChanged: {
-                            if (fakeNavCtrl2.active) {
-                                livebrailleinfo.forceActiveFocus();
-                            } else {
-                                livebrailleinfo.focus = false
-                            }
-                        }
-                    }
-
-                    NavigationFocusBorder {
-                        navigationCtrl: fakeNavCtrl2
-                        drawOutsideParent: false
-                    }
 
                     onCursorPositionChanged: {
                         console.log("cursor pos: ", livebrailleinfo.cursorPosition);
@@ -237,8 +215,29 @@ FocusScope {
                 }
 
                 ScrollBar.vertical: ScrollBar {}
-            }
 
+                NavigationControl {
+                    id: fakeNavCtrl2
+                    name: "LiveBraille"
+                    enabled: livebrailleinfo.enabled && livebrailleinfo.visible
+
+                    panel: navPanel
+                    order: 0
+
+                    onActiveChanged: {
+                        if (fakeNavCtrl2.active) {
+                            livebrailleinfo.forceActiveFocus();
+                        } else {
+                            livebrailleinfo.focus = false
+                        }
+                    }
+                }
+
+                NavigationFocusBorder {
+                    navigationCtrl: fakeNavCtrl2
+                    drawOutsideParent: false
+                }
+            }
 
             Component {
                 id: navigatorComp
