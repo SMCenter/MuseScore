@@ -184,28 +184,60 @@ FocusScope {
                     }
                 }
             }
-            //NavigationControl {
-                StyledFlickable {
-                    SplitView.fillWidth: true
-                    SplitView.preferredHeight: 50
-                    SplitView.minimumHeight: 30
 
-                    TextArea.flickable: TextArea {
-                        id: livebrailleinfo
-                        text: lbmodel.liveBrailleInfo
-                        wrapMode: Text.AlignLeft
 
-                        onCursorPositionChanged: {
-                            console.log("cursor pos: ", livebrailleinfo.cursorPosition);
-                            lbmodel.cursorPosition = livebrailleinfo.cursorPosition;
-                            //console.log("item pos: ", lbmodel.currentItemPositionStart.valueOf(), lbmodel.currentItemPositionEnd.valueOf());
-                            //livebrailleinfo.select(lbmodel.currentItemPositionStart.valueOf(), lbmodel.currentItemPositionEnd.valueOf());
+            StyledFlickable {
+                SplitView.fillWidth: true
+                SplitView.preferredHeight: 50
+                SplitView.minimumHeight: 30
+
+                TextArea.flickable: TextArea {
+                    id: livebrailleinfo
+                    text: lbmodel.liveBrailleInfo
+                    wrapMode: Text.AlignLeft
+
+                    NavigationControl {
+                        id: fakeNavCtrl2
+                        name: "LiveBraille"
+                        enabled: livebrailleinfo.enabled && livebrailleinfo.visible
+
+                        panel: navPanel
+                        order: 0
+
+                        onActiveChanged: {
+                            if (fakeNavCtrl2.active) {
+                                livebrailleinfo.forceActiveFocus();
+                            } else {
+                                livebrailleinfo.focus = false
+                            }
                         }
                     }
 
-                    ScrollBar.vertical: ScrollBar {}
+                    NavigationFocusBorder {
+                        navigationCtrl: fakeNavCtrl2
+                        drawOutsideParent: false
+                    }
+
+                    onCursorPositionChanged: {
+                        console.log("cursor pos: ", livebrailleinfo.cursorPosition);
+                        lbmodel.cursorPosition = livebrailleinfo.cursorPosition;
+                        //console.log("item pos: ", lbmodel.currentItemPositionStart.valueOf(), lbmodel.currentItemPositionEnd.valueOf());
+                        //livebrailleinfo.select(lbmodel.currentItemPositionStart.valueOf(), lbmodel.currentItemPositionEnd.valueOf());
+                    }
+                    Keys.onTabPressed: {
+                        notationView.forceFocusIn();
+                        fakeNavCtrl.requestActive();
+                    }
+                    Keys.onPressed: {
+                        if((event.key !== Qt.Key_Up) && (event.key !== Qt.Key_Down) &&
+                           (event.key !== Qt.Key_Left) && (event.key !== Qt.Key_Right)) {
+                                event.accepted = true;
+                         }
+                    }
                 }
-            //}
+
+                ScrollBar.vertical: ScrollBar {}
+            }
 
             Component {
                 id: navigatorComp
