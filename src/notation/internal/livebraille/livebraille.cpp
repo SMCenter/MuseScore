@@ -516,7 +516,7 @@ void BrailleEngravingItems::addEngravingItem(mu::engraving::EngravingItem* el, Q
 
     int start = braille_str.length();
     int end = start + unitxt.length();
-    LOGD() << "addEngravingItem " << start << " " << end << " :" << el->accessibleInfo();
+    //LOGD() << "addEngravingItem " << start << " " << end << " :" << el->accessibleInfo();
     _items.push_back({el, {start, end}});
     braille_str.append(unitxt);
 }
@@ -535,7 +535,6 @@ void BrailleEngravingItems::addLyricsItem(mu::engraving::Lyrics* l) {
             braille_str.append(unitxt);
         break;
     }
-
 }
 mu::engraving::EngravingItem* BrailleEngravingItems::getEngravingItem(int pos) {
     for(size_t i=0; i < _items.size(); i++) {
