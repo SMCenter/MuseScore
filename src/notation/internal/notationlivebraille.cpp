@@ -79,7 +79,7 @@ NotationLiveBraille::NotationLiveBraille(const Notation* notation)
         check_table_failed = false;
     }
     if(!check_table_failed) {
-        std::string welcome = braille_translate("unicode.dis,en-us-g2.ctb", "Welcome to MuseScore 4.0!");
+        std::string welcome = braille_translate(table_for_literature.c_str(), "Welcome to MuseScore 4.0!");
         setLiveBrailleInfo(QString(welcome.c_str()));
      }
     //setLiveBrailleInfo(QString(tablesdir.toStdString().c_str()));
