@@ -198,11 +198,19 @@ FocusScope {
 
                     NavigationControl {
                         id: fakeNavCtrl2
-                        name: "LiveBraille"
+                        name: "Live Braille"
                         enabled: livebrailleinfo.enabled && livebrailleinfo.visible
-
                         panel: navPanel
                         order: 0
+
+                        accessible.role: MUAccessible.EditableText
+                        accessible.name: "Live Braille"
+                        accessible.visualItem: livebrailleinfo
+                        accessible.text: livebrailleinfo.text
+                        accessible.selectedText: livebrailleinfo.selectedText
+                        accessible.selectionStart: livebrailleinfo.selectionStart
+                        accessible.selectionEnd: livebrailleinfo.selectionEnd
+                        accessible.cursorPosition: livebrailleinfo.cursorPosition
 
                         onActiveChanged: {
                             if (fakeNavCtrl2.active) {
@@ -219,7 +227,6 @@ FocusScope {
                     }
 
                     onCursorPositionChanged: {
-                        console.log("cursor pos: ", livebrailleinfo.cursorPosition);
                         lbmodel.cursorPosition = livebrailleinfo.cursorPosition;
                         //console.log("item pos: ", lbmodel.currentItemPositionStart.valueOf(), lbmodel.currentItemPositionEnd.valueOf());
                         //livebrailleinfo.select(lbmodel.currentItemPositionStart.valueOf(), lbmodel.currentItemPositionEnd.valueOf());
