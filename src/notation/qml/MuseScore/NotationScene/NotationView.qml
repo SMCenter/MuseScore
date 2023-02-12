@@ -196,12 +196,21 @@ FocusScope {
                     text: lbmodel.liveBrailleInfo
                     wrapMode: Text.AlignLeft
 
+                    NavigationPanel {
+                        id: navPanel2
+                        name: "LiveBrailleView"
+                        section: navSec
+                        enabled: livebrailleinfo.enabled && livebrailleinfo.visible
+                        direction: NavigationPanel.Both
+                        order: 3
+                    }
+
                     NavigationControl {
                         id: fakeNavCtrl2
-                        name: "Live Braille"
+                        name: "LiveBraille"
                         enabled: livebrailleinfo.enabled && livebrailleinfo.visible
-                        panel: navPanel
-                        order: 0
+                        panel: navPanel2
+                        order: 1
 
                         accessible.role: MUAccessible.EditableText
                         accessible.name: "Live Braille"
@@ -231,10 +240,7 @@ FocusScope {
                         //console.log("item pos: ", lbmodel.currentItemPositionStart.valueOf(), lbmodel.currentItemPositionEnd.valueOf());
                         //livebrailleinfo.select(lbmodel.currentItemPositionStart.valueOf(), lbmodel.currentItemPositionEnd.valueOf());
                     }
-                    Keys.onTabPressed: {
-                        notationView.forceFocusIn();
-                        fakeNavCtrl.requestActive();
-                    }
+
                     Keys.onPressed: {
                         if((event.key !== Qt.Key_Up) && (event.key !== Qt.Key_Down) &&
                            (event.key !== Qt.Key_Left) && (event.key !== Qt.Key_Right)) {
