@@ -242,10 +242,46 @@ FocusScope {
                     }
 
                     Keys.onPressed: {
-                        if((event.key !== Qt.Key_Up) && (event.key !== Qt.Key_Down) &&
-                           (event.key !== Qt.Key_Left) && (event.key !== Qt.Key_Right)) {
-                                event.accepted = true;
-                         }
+                        if(event.key !== Qt.Key_Shift && event.key !== Qt.Key_Alt &&
+                                event.key !== Qt.Key_Control) {
+
+                            var shortcut = "";
+
+                            if(event.modifiers === Qt.ShiftModifier) {
+                                shortcut = shortcut === "" ? "Shift" : shortcut += "+Shift";
+                            }
+
+                            if(event.modifiers === Qt.AltModifier) {
+                                shortcut = shortcut === "" ? "Alt" : shortcut += "+Alt";
+                            }
+                            if(event.modifiers === Qt.ControlModifier) {
+                                shortcut = shortcut === "" ? "Ctrl" : shortcut += "+Ctrl";
+                            }
+
+                            if(shortcut !== "") shortcut += "+";
+
+                            if(event.key === Qt.Key_Right) {
+                                shortcut += "Right"
+                            } else if(event.key === Qt.Key_Left) {
+                                shortcut += "Left"
+                            } else if(event.key === Qt.Key_Up) {
+                                shortcut += "Up"
+                            } else if(event.key === Qt.Key_Down) {
+                                shortcut += "Down"
+                            } else if(event.key === Qt.Key_PageUp) {
+                                shortcut += "PgUp"
+                            } else if(event.key === Qt.Key_PageDown) {
+                                shortcut += "PgDown"
+                            } else if(event.key === Qt.Key_Home) {
+                                shortcut += "Home"
+                            } else if(event.key === Qt.Key_End) {
+                                shortcut += "End"
+                            }
+
+                            lbmodel.shorcut = shortcut;
+                            //console.log("shortcut: ", shortcut);
+                            event.accepted = true;
+                        }
                     }
                 }
 

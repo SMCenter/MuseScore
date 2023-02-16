@@ -36,6 +36,7 @@
 #include "async/notification.h"
 
 #include "internal/livebraille/livebraille.h"
+#include "shortcuts/ishortcutscontroller.h"
 
 namespace Ms {
 class Score;
@@ -48,6 +49,7 @@ class Notation;
 class NotationLiveBraille : public INotationLiveBraille, public async::Asyncable
 {
     INJECT(notation, framework::IGlobalConfiguration, globalConfiguration)
+    INJECT(notation, shortcuts::IShortcutsController, shortcutsController)
 public:
     NotationLiveBraille(const Notation* notation);
 
@@ -55,15 +57,18 @@ public:
     ValCh<int> cursorPosition() const override;
     ValCh<int> currentItemPositionStart() const override;
     ValCh<int> currentItemPositionEnd() const override;
+    ValCh<std::string> shortcut() const override;
 
     void setEnabled(bool enabled) override;
     void setTriggeredCommand(const std::string& command) override;
 
     void setCursorPosition(const int pos) override;
     void setCurrentItemPosition(const int, const int) override;
+    void setShortcut(const QString&) override;
 
     livebraille::BrailleEngravingItems* brailleEngravingItems();
     QString getBrailleStr();
+
 private:
     engraving::Score* score();
     engraving::Selection* selection();
@@ -74,6 +79,7 @@ private:
     void updateCursorPosition();
 
     void setLiveBrailleInfo(const QString& info);
+    void setCurrentShortcut(const QString& sequence);
 
     io::path_t tablesDefaultDirPath() const;
 
@@ -83,6 +89,7 @@ private:
     ValCh<int> m_cursorPosition;
     ValCh<int> m_currentItemPositionStart;
     ValCh<int> m_currentItemPositionEnd;
+    ValCh<std::string> m_shortcut;
 
     livebraille::BrailleEngravingItems m_bei;
     async::Notification m_selectionChanged;

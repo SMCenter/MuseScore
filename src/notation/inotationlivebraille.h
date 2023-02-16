@@ -36,12 +36,14 @@ public:
     virtual ValCh<int> cursorPosition() const = 0;
     virtual ValCh<int> currentItemPositionStart() const = 0;
     virtual ValCh<int> currentItemPositionEnd() const = 0;
+    virtual ValCh<std::string> shortcut() const = 0;
 
     virtual void setEnabled(bool enabled) = 0;
     virtual void setTriggeredCommand(const std::string& command) = 0;
 
     virtual void setCursorPosition(const int pos) = 0;
     virtual void setCurrentItemPosition(const int, const int) = 0;
+    virtual void setShortcut(const QString&) = 0;
 };
 
 using INotationLiveBraillePtr = std::shared_ptr<INotationLiveBraille>;
