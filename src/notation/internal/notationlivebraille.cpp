@@ -53,7 +53,8 @@ using namespace mu::notation::livebraille;
 NotationLiveBraille::NotationLiveBraille(const Notation* notation)
     : m_getScore(notation)
 {    
-    MScore::debugMode = true;
+    //MScore::debugMode = true;
+
     setCurrentItemPosition(-1, -1);
 
     path_t tablesdir = tablesDefaultDirPath();    
@@ -220,6 +221,10 @@ mu::ValCh<int> NotationLiveBraille::currentItemPositionEnd() const
 {
     return m_currentItemPositionEnd;
 }
+mu::ValCh<std::string> NotationLiveBraille::shortcut() const
+{
+    return m_shortcut;
+}
 
 /*
 void NotationLiveBraille::setMapToScreenFunc(const AccessibleMapToScreenFunc& func)
@@ -301,10 +306,9 @@ void NotationLiveBraille::setCursorPosition(const int pos)
         LOGD() << el->accessibleInfo();        
         //el->setSelected(true);
         score()->select(el);
-    } else {
+    } else {        
         LOGD() << "Item not found";
     }
-
 }
 
 void NotationLiveBraille::setCurrentItemPosition(const int start, const int end)
@@ -319,7 +323,19 @@ void NotationLiveBraille::setCurrentItemPosition(const int start, const int end)
     m_currentItemPositionEnd.set(end);
 }
 
+void NotationLiveBraille::setShortcut(const QString &sequence)
+{
+    LOGD() << sequence;
+    std::string seq = sequence.toStdString();
+    m_shortcut.set(seq);
+
+    if(shortcutsController()->isRegistered(seq)) {
+        shortcutsController()->activate(seq);
+    }
+}
+
 path_t NotationLiveBraille::tablesDefaultDirPath() const
 {
     return globalConfiguration()->appDataPath() + "tables";
 }
+

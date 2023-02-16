@@ -21,17 +21,14 @@
  */
 
 #include "livebraillemodel.h"
-
 #include "types/translatablestring.h"
-
 #include "log.h"
 
 using namespace mu::notation;
 
 LiveBrailleModel::LiveBrailleModel(QObject* parent)
     : QObject(parent)
-{
-    LOGD("LiveBrailleModel::LiveBrailleModel");
+{    
     load();
 }
 
@@ -40,6 +37,11 @@ QString LiveBrailleModel::liveBrailleInfo() const
     //LOGD("LiveBrailleModel::liveBrailleInfo");
     return livebraille() ? QString::fromStdString(livebraille()->liveBrailleInfo().val) : QString();
 }
+QString LiveBrailleModel::shortcut() const
+{
+    return livebraille() ? QString::fromStdString(livebraille()->shortcut().val) : QString();
+}
+
 int LiveBrailleModel::cursorPosition() const
 {
     return livebraille() ? livebraille()->cursorPosition().val : 0;
@@ -58,13 +60,16 @@ void LiveBrailleModel::setCursorPosition(int pos) const
 {    
     if(!livebraille()) return;
 
-    if ( livebraille()->cursorPosition().val == pos)
+    if (livebraille()->cursorPosition().val == pos)
         return;
 
-    LOGD("LiveBrailleModel::setCursorPosition %d", pos);
+    livebraille()->setCursorPosition(pos);    
+}
 
-    livebraille()->setCursorPosition(pos);
-    //emit currentItemChanged();
+void LiveBrailleModel::setShortcut(const QString & sequence) const
+{
+    if(!livebraille()) return;
+    livebraille()->setShortcut(sequence);
 }
 
 void LiveBrailleModel::load()
@@ -88,27 +93,34 @@ void LiveBrailleModel::onCurrentNotationChanged()
 }
 
 void LiveBrailleModel::listenChangesInLiveBraille()
-{
-    LOGD("LiveBrailleModel::listenChangesInLiveBraille");
+{ 
     if (!livebraille()) {
         return;
     }
-
-    emit liveBrailleInfoChanged();
 
     livebraille()->liveBrailleInfo().ch.onReceive(this, [this](const std::string&) {
         emit liveBrailleInfoChanged();
     });
 }
+
+void LiveBrailleModel::listenShortcuts()
+{
+    LOGD("log");
+    if (!livebraille()) {
+        return;
+    }
+
+    livebraille()->shortcut().ch.onReceive(this, [this](const std::string&) {
+        emit shortcutFired();
+    });
+}
+
 void LiveBrailleModel::listenCursorPositionChanges()
 {
     LOGD("LiveBrailleModel::listenCursorPositionChanges");
     if (!livebraille()) {
         return;
-    }
-
-    //emit cursorPositionChanged();
-
+    }    
     livebraille()->cursorPosition().ch.onReceive(this, [this](const int) {
         emit cursorPositionChanged();
     });
@@ -120,9 +132,6 @@ void LiveBrailleModel::listenCurrentItemChanges()
     if (!livebraille()) {
         return;
     }
-
-    //emit currentItemChanged();
-
     livebraille()->currentItemPositionStart().ch.onReceive(this, [this](int) {
         emit currentItemChanged();
     });
