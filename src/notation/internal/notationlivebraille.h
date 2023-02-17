@@ -37,6 +37,7 @@
 
 #include "internal/livebraille/livebraille.h"
 #include "shortcuts/ishortcutscontroller.h"
+#include "context/iglobalcontext.h"
 
 namespace Ms {
 class Score;
@@ -48,7 +49,8 @@ class IGetScore;
 class Notation;
 class NotationLiveBraille : public INotationLiveBraille, public async::Asyncable
 {
-    INJECT(notation, framework::IGlobalConfiguration, globalConfiguration)        
+    INJECT(notation, framework::IGlobalConfiguration, globalConfiguration)            
+    INJECT(notation, context::IGlobalContext, context)
     INJECT(notation, shortcuts::IShortcutsController, shortcutsController)
 public:
     NotationLiveBraille(const Notation* notation);
@@ -65,6 +67,9 @@ public:
     void setCursorPosition(const int pos) override;
     void setCurrentItemPosition(const int, const int) override;
     void setShortcut(const QString &) override;
+
+    INotationPtr notation();
+    INotationInteractionPtr interaction();
 
     livebraille::BrailleEngravingItems * brailleEngravingItems();
     QString getBrailleStr();

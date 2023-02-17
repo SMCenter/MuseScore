@@ -34,8 +34,7 @@ FocusScope {
 
     LiveBrailleModel {        
         id: lbmodel        
-        onCurrentItemChanged: {
-            console.log("onCurrentItemChanged: ", lbmodel.currentItemPositionStart.valueOf(), lbmodel.currentItemPositionEnd.valueOf());
+        onCurrentItemChanged: {            
             if(lbmodel.currentItemPositionStart.valueOf() != -1 &&
                     lbmodel.currentItemPositionEnd.valueOf() != -1) {
                 livebrailleinfo.select(lbmodel.currentItemPositionStart.valueOf(), lbmodel.currentItemPositionEnd.valueOf());
@@ -223,7 +222,7 @@ FocusScope {
 
                         onActiveChanged: {
                             if (fakeNavCtrl2.active) {
-                                livebrailleinfo.forceActiveFocus();                                
+                                livebrailleinfo.forceActiveFocus();
                             } else {
                                 livebrailleinfo.focus = false
                             }
@@ -236,9 +235,7 @@ FocusScope {
                     }
 
                     onCursorPositionChanged: {
-                        lbmodel.cursorPosition = livebrailleinfo.cursorPosition;
-                        //console.log("item pos: ", lbmodel.currentItemPositionStart.valueOf(), lbmodel.currentItemPositionEnd.valueOf());
-                        //livebrailleinfo.select(lbmodel.currentItemPositionStart.valueOf(), lbmodel.currentItemPositionEnd.valueOf());
+                        lbmodel.cursorPosition = livebrailleinfo.cursorPosition;                        
                     }                   
 
                     Keys.onPressed: {
@@ -279,7 +276,6 @@ FocusScope {
                             }
 
                             lbmodel.shorcut = shortcut;
-                            //console.log("shortcut: ", shortcut);
                             event.accepted = true;
                         }
                     }
