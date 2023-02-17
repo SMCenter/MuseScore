@@ -29,6 +29,7 @@
 
 #include "igetscore.h"
 #include "notation.h"
+#include "internal/notationactioncontroller.h"
 
 #include "libmscore/masterscore.h"
 #include "libmscore/spanner.h"
@@ -302,8 +303,6 @@ void NotationLiveBraille::setLiveBrailleInfo(const QString& info)
 
 void NotationLiveBraille::setCursorPosition(const int pos)
 {
-    LOGD("%d", pos);
-
     if (m_cursorPosition.val == pos) {
         return;
     }
@@ -312,17 +311,14 @@ void NotationLiveBraille::setCursorPosition(const int pos)
 
     notation::EngravingItem* el = brailleEngravingItems()->getEngravingItem(pos);
     if (el != nullptr) {
-        LOGD() << el->accessibleInfo();
-        //el->setSelected(true);
         score()->select(el);
     } else {
-        LOGD() << "Item not found";
+        //LOGD() << "Item not found";
     }
 }
 
 void NotationLiveBraille::setCurrentItemPosition(const int start, const int end)
 {
-    LOGD("NotationLiveBraille::setCurrentItemPosition %d:%d", start, end);
     if (m_currentItemPositionStart.val == start
         && m_currentItemPositionEnd.val == end) {
         return;
@@ -332,13 +328,39 @@ void NotationLiveBraille::setCurrentItemPosition(const int start, const int end)
     m_currentItemPositionEnd.set(end);
 }
 
+INotationPtr NotationLiveBraille::notation()
+{
+    return context()->currentNotation();
+}
+
+INotationInteractionPtr NotationLiveBraille::interaction()
+{
+    return notation() ? notation()->interaction() : nullptr;
+}
+
 void NotationLiveBraille::setShortcut(const QString& sequence)
 {
     LOGD() << sequence;
     std::string seq = sequence.toStdString();
     m_shortcut.set(seq);
 
-    if (shortcutsController()->isRegistered(seq)) {
+    if (seq == "Left") {
+        interaction()->moveSelection(MoveDirection::Left, MoveSelectionType::Chord);
+    } else if (seq == "Right") {
+        interaction()->moveSelection(MoveDirection::Right, MoveSelectionType::Chord);
+    } else if (seq == "Ctrl+Left") {
+        interaction()->moveSelection(MoveDirection::Left, MoveSelectionType::Measure);
+    } else if (seq == "Ctrl+Right") {
+        interaction()->moveSelection(MoveDirection::Right, MoveSelectionType::Measure);
+    } else if (seq == "Alt+Left") {
+        interaction()->moveSelection(MoveDirection::Left, MoveSelectionType::EngravingItem);
+    } else if (seq == "Alt+Right") {
+        interaction()->moveSelection(MoveDirection::Right, MoveSelectionType::EngravingItem);
+    } else if (seq == "Ctrl+End") {
+        interaction()->selectLastElement();
+    } else if (seq == "Ctrl+Home") {
+        interaction()->selectFirstElement();
+    } else if (shortcutsController()->isRegistered(seq)) {
         shortcutsController()->activate(seq);
     }
 }
