@@ -311,9 +311,10 @@ void NotationLiveBraille::setCursorPosition(const int pos)
 
     notation::EngravingItem* el = brailleEngravingItems()->getEngravingItem(pos);
     if (el != nullptr) {
-        score()->select(el);
+        interaction()->select({ el });
+        LOGD() << el->accessibleInfo();
     } else {
-        //LOGD() << "Item not found";
+        LOGD() << "Item not found";
     }
 }
 
