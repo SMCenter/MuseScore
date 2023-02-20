@@ -274,9 +274,12 @@ FocusScope {
                             } else if(event.key === Qt.Key_End) {
                                 shortcut += "End"
                             }
-
-                            lbmodel.shorcut = shortcut;
-                            event.accepted = true;
+                            if(shortcut === "Left" || shortcut === "Right") {
+                                // DO NOTHING
+                            } else if(shortcut !== "Up" && shortcut !== "Down") {
+                                lbmodel.shorcut = shortcut;
+                                event.accepted = true;
+                            }
                         }
                     }
                 }
