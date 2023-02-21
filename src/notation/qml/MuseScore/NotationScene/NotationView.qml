@@ -40,6 +40,9 @@ FocusScope {
                 livebrailleinfo.select(lbmodel.currentItemPositionStart.valueOf(), lbmodel.currentItemPositionEnd.valueOf());
             }
         }
+        onEnabledChanged: {
+            livebrailleview.visible = lbmodel.enabled
+        }
     }
 
     property alias name: notationView.objectName
@@ -186,9 +189,12 @@ FocusScope {
 
 
             StyledFlickable {
+                id: livebrailleview
                 SplitView.fillWidth: true
                 SplitView.preferredHeight: 50
                 SplitView.minimumHeight: 30
+
+                visible: lbmodel.enabled
 
                 TextArea.flickable: TextArea {
                     id: livebrailleinfo

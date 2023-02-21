@@ -106,5 +106,8 @@
         <file>qml/platform/AppButtonBackground.qml</file>
         <file>qml/platform/PlatformMenuBar.qml</file>
         <file>resources/LoadingScreen.svg</file>
+        <file>qml/Preferences/LiveBraillePreferencesPage.qml</file>
+        <file>qml/Preferences/internal/LiveBrailleSection.qml</file>
+        <file>qml/Preferences/internal/LiveBrailleTableSection.qml</file>
     </qresource>
 </RCC>

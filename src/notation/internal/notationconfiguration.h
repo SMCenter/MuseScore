@@ -187,6 +187,13 @@ public:
     io::path_t styleFileImportPath() const override;
     void setStyleFileImportPath(const io::path_t& path) override;
 
+    async::Notification liveBrailleStatusChanged() const override;
+    bool liveBrailleStatus() const override;
+    void setLiveBrailleStatus(const bool enabled) override;
+
+    async::Notification liveBrailleTableChanged() const override;
+    QString liveBrailleTable() const override;
+    void setLiveBrailleTable(const QString table) override;
 private:
     io::path_t firstScoreOrderListPath() const;
     void setFirstScoreOrderListPath(const io::path_t& path);
@@ -203,6 +210,9 @@ private:
     async::Notification m_isPlayRepeatsChanged;
     async::Notification m_isPlayChordSymbolsChanged;
     ValCh<int> m_pianoKeyboardNumberOfKeys;
+
+    async::Notification m_liveBrailleStatusChanged;
+    async::Notification m_liveBrailleTableChanged;
 };
 }
 

@@ -34,7 +34,6 @@ LiveBrailleModel::LiveBrailleModel(QObject* parent)
 
 QString LiveBrailleModel::liveBrailleInfo() const
 {
-    //LOGD("LiveBrailleModel::liveBrailleInfo");
     return livebraille() ? QString::fromStdString(livebraille()->liveBrailleInfo().val) : QString();
 }
 
@@ -79,9 +78,29 @@ void LiveBrailleModel::setShortcut(const QString& sequence) const
     livebraille()->setShortcut(sequence);
 }
 
+bool LiveBrailleModel::enabled() const
+{
+    if (!livebraille()) {
+        return false;
+    }
+    return livebraille()->enabled().val;
+}
+
+void LiveBrailleModel::setEnabled(bool e) const
+{
+    if (!livebraille()) {
+        return;
+    }
+    if (livebraille()->enabled().val == e) {
+        return;
+    }
+
+    livebraille()->setEnabled(e);
+    emit enabledChanged();
+}
+
 void LiveBrailleModel::load()
 {
-    LOGD("LiveBrailleModel::load");
     TRACEFUNC;
 
     onCurrentNotationChanged();
@@ -98,6 +117,9 @@ void LiveBrailleModel::onCurrentNotationChanged()
 
     listenChangesInLiveBraille();
     listenCurrentItemChanges();
+    listenShortcuts();
+    listenEnabledChanges();
+    listenCursorPositionChanges();
 }
 
 void LiveBrailleModel::listenChangesInLiveBraille()
@@ -125,7 +147,6 @@ void LiveBrailleModel::listenShortcuts()
 
 void LiveBrailleModel::listenCursorPositionChanges()
 {
-    LOGD("LiveBrailleModel::listenCursorPositionChanges");
     if (!livebraille()) {
         return;
     }
@@ -136,7 +157,6 @@ void LiveBrailleModel::listenCursorPositionChanges()
 
 void LiveBrailleModel::listenCurrentItemChanges()
 {
-    LOGD("LiveBrailleModel::listenCurrentItemChanges");
     if (!livebraille()) {
         return;
     }
@@ -146,6 +166,17 @@ void LiveBrailleModel::listenCurrentItemChanges()
 
     livebraille()->currentItemPositionEnd().ch.onReceive(this, [this](int) {
         emit currentItemChanged();
+    });
+}
+
+void LiveBrailleModel::listenEnabledChanges()
+{
+    LOGD("LiveBrailleModel::listenCursorPositionChanges");
+    if (!livebraille()) {
+        return;
+    }
+    livebraille()->enabled().ch.onReceive(this, [this](const int) {
+        emit enabledChanged();
     });
 }
 

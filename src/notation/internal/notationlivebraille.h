@@ -38,6 +38,7 @@
 #include "internal/livebraille/livebraille.h"
 #include "shortcuts/ishortcutscontroller.h"
 #include "context/iglobalcontext.h"
+#include "notation/inotationconfiguration.h"
 
 namespace Ms {
 class Score;
@@ -52,17 +53,20 @@ class NotationLiveBraille : public INotationLiveBraille, public async::Asyncable
     INJECT(notation, framework::IGlobalConfiguration, globalConfiguration)
     INJECT(notation, context::IGlobalContext, context)
     INJECT(notation, shortcuts::IShortcutsController, shortcutsController)
+    INJECT(notation, notation::INotationConfiguration, notationConfiguration)
 public:
     NotationLiveBraille(const Notation* notation);
+
+    void doLiveBraille();
 
     ValCh<std::string> liveBrailleInfo() const override;
     ValCh<int> cursorPosition() const override;
     ValCh<int> currentItemPositionStart() const override;
     ValCh<int> currentItemPositionEnd() const override;
     ValCh<std::string> shortcut() const override;
+    ValCh<bool> enabled() const override;
 
     void setEnabled(bool enabled) override;
-    void setTriggeredCommand(const std::string& command) override;
 
     void setCursorPosition(const int pos) override;
     void setCurrentItemPosition(const int, const int) override;
@@ -80,9 +84,6 @@ private:
 
     Measure* current_measure = nullptr;
 
-    void updateLiveBrailleInfo();
-    void updateCursorPosition();
-
     void setLiveBrailleInfo(const QString& info);
     void setCurrentShortcut(const QString& sequence);
 
@@ -95,6 +96,7 @@ private:
     ValCh<int> m_currentItemPositionStart;
     ValCh<int> m_currentItemPositionEnd;
     ValCh<std::string> m_shortcut;
+    ValCh<bool> m_enabled;
 
     livebraille::BrailleEngravingItems m_bei;
     async::Notification m_selectionChanged;
