@@ -54,8 +54,7 @@ using namespace mu::notation::livebraille;
 NotationLiveBraille::NotationLiveBraille(const Notation* notation)
     : m_getScore(notation)
 {    
-    //MScore::debugMode = true;
-
+    setEnabled(notationConfiguration()->liveBrailleStatus());
     setCurrentItemPosition(-1, -1);
 
     path_t tablesdir = tablesDefaultDirPath();    
@@ -63,30 +62,42 @@ NotationLiveBraille::NotationLiveBraille(const Notation* notation)
     setTablesDir(tablesdir.toStdString().c_str());
     initTables(tablesdir.toStdString());
 
-    bool check_table_failed = true;
-    if(check_tables(table_ascii_to_unicode.c_str()) == -1) {
-        std::string msg = "Check tables " + table_ascii_to_unicode + " failed!";
-        setLiveBrailleInfo(msg.c_str());
-    } else if(check_tables(table_unicode_to_ascii.c_str()) == -1) {
-        std::string msg = "Check tables " + table_unicode_to_ascii + " failed!";
-        setLiveBrailleInfo(msg.c_str());
-    } else if(check_tables(table_for_literature.c_str()) == -1) {
-        std::string msg = "Check tables " + table_for_literature + " failed!";
-        setLiveBrailleInfo(msg.c_str());
-    //} else if(check_tables(table_for_general.c_str()) == -1) {
-    //    std::string msg = "Check tables " + table_for_general + " failed!";
-    //    setLiveBrailleInfo(msg.c_str());
-    } else {
-        //setLiveBrailleInfo("Check tables succeeded!");
-        check_table_failed = false;
-    }
-    if(!check_table_failed) {
-        std::string welcome = braille_translate(table_for_literature.c_str(), "Welcome to MuseScore 4.0!");
-        setLiveBrailleInfo(QString(welcome.c_str()));
-     }
-    //setLiveBrailleInfo(QString(tablesdir.toStdString().c_str()));
+    std::string welcome = braille_translate(table_for_literature.c_str(), "Welcome to MuseScore 4.0!");
+    setLiveBrailleInfo(QString(welcome.c_str()));
 
-    notation->interaction()->selectionChanged().onNotify(this, [this]() {        
+    notationConfiguration()->liveBrailleStatusChanged().onNotify(this, [this]() {
+        bool enabled = notationConfiguration()->liveBrailleStatus();
+        setEnabled(enabled);
+    });
+
+    notationConfiguration()->liveBrailleTableChanged().onNotify(this, [this]() {
+        QString table = notationConfiguration()->liveBrailleTable();        
+        int startPos = table.indexOf('[');
+        int endPos = table.indexOf(']');
+        if(startPos != -1 && endPos != -1) {
+            table = table.mid(startPos + 1, endPos - startPos - 1);
+            table = QString::fromStdString(tables_dir) + "/" + table;
+            if(check_tables(table.toStdString().c_str()) == 0) {
+                LOGD() << "Table ok: " << table;
+                updateTableForLyrics(table.toStdString());
+            } else {
+                LOGD() << "Table check error!";
+            }
+        }
+    });
+
+    notation->interaction()->selectionChanged().onNotify(this, [this]() {
+        doLiveBraille();
+    });
+
+    notation->notationChanged().onNotify(this, [this]() {
+        doLiveBraille();
+    });
+}
+
+void NotationLiveBraille::doLiveBraille()
+{
+    if(notationConfiguration()->liveBrailleStatus()) {
         EngravingItem * e = nullptr;
         Measure * m = nullptr;
 
@@ -123,7 +134,7 @@ NotationLiveBraille::NotationLiveBraille(const Notation* notation)
                 }
                 current_measure = nullptr;
             } else {
-                if(m != current_measure) {                    
+                if(m != current_measure) {
                     brailleEngravingItems()->clear();
                     LiveBraille lb(score());
                     lb.writeMeasure(brailleEngravingItems(), m);
@@ -136,63 +147,7 @@ NotationLiveBraille::NotationLiveBraille(const Notation* notation)
                 }
             }
         }
-    });
-
-    notation->notationChanged().onNotify(this, [this]() {
-        //updateLiveBrailleInfo();
-        EngravingItem * e = nullptr;        
-        Measure * m = nullptr;
-
-        if(selection()->isSingle()) {
-            e = selection()->element();
-        } else if(selection()->isRange()) {
-            Measure * m = nullptr;
-            for(auto el: selection()->elements()) {
-                if(el->isMeasure()) {
-                    m = toMeasure(el);
-                    break;
-                 } else {
-                    m = el->findMeasure();
-                    if(m) break;
-                }
-            }
-            e = m ? m : selection()->elements().front();
-        }  else if(selection()->isList()) {
-            e = selection()->elements().front();
-            m = e->findMeasure();
-        }
-
-        if(e) {
-            if(!m) {
-                brailleEngravingItems()->clear();
-                LiveBraille lb(score());
-                bool res = lb.writeItem(brailleEngravingItems(), e);
-                if(!res) {
-                    QString txt = e->accessibleInfo();
-                    LOGD() << "type " << (int)e->type() << " :" << txt;
-                    std::string braille = braille_long_translate(table_for_literature.c_str(), txt.toStdString());
-                    brailleEngravingItems()->setBrailleStr(QString::fromStdString(braille));
-                    setLiveBrailleInfo(QString::fromStdString(braille));
-                } else {
-                    setLiveBrailleInfo(brailleEngravingItems()->brailleStr());
-                }
-                current_measure = nullptr;
-            } else {
-                if(m != current_measure) {
-                    brailleEngravingItems()->clear();                    
-                    LiveBraille lb(score());
-                    lb.writeMeasure(brailleEngravingItems(), m);
-                    setLiveBrailleInfo(brailleEngravingItems()->brailleStr());
-                    current_measure = m;
-                }
-                std::pair<int, int> pos = brailleEngravingItems()->getBraillePos(e);
-                if(pos.first != -1) {
-                    setCurrentItemPosition(pos.first, pos.second);
-                }
-            }
-        }
-        //LOGD("notationChanged()");
-    });
+    }
 }
 
 mu::engraving::Score* NotationLiveBraille::score()
@@ -227,32 +182,17 @@ mu::ValCh<std::string> NotationLiveBraille::shortcut() const
     return m_shortcut;
 }
 
-/*
-void NotationLiveBraille::setMapToScreenFunc(const AccessibleMapToScreenFunc& func)
+mu::ValCh<bool> NotationLiveBraille::enabled() const
 {
-#ifndef ENGRAVING_NO_ACCESSIBILITY
-    score()->rootItem()->accessible()->accessibleRoot()->setMapToScreenFunc(func);
-    score()->dummy()->rootItem()->accessible()->accessibleRoot()->setMapToScreenFunc(func);
-#else
-    UNUSED(func)
-#endif
+    return m_enabled;
 }
-*/
 
 void NotationLiveBraille::setEnabled(bool enabled)
 {
-   UNUSED(enabled)
-}
-
-void NotationLiveBraille::setTriggeredCommand(const std::string& command)
-{
-#ifndef ENGRAVING_NO_LIVEBRAILLE
-//    score()->rootItem()->accessible()->accessibleRoot()->setCommandInfo(QString::fromStdString(command));
-//    score()->dummy()->rootItem()->accessible()->accessibleRoot()->setCommandInfo(QString::fromStdString(command));
-    UNUSED(command)
-#else
-    UNUSED(command)
-#endif
+   if(enabled == m_enabled.val) {
+       return;
+   }
+   m_enabled.set(enabled);
 }
 
 livebraille::BrailleEngravingItems * NotationLiveBraille::brailleEngravingItems(){
@@ -261,24 +201,6 @@ livebraille::BrailleEngravingItems * NotationLiveBraille::brailleEngravingItems(
 
 QString NotationLiveBraille::getBrailleStr() {
     return m_bei.brailleStr();
-}
-
-void NotationLiveBraille::updateLiveBrailleInfo()
-{
-    if (!score()) {
-        return;
-    }
-
-    QString newLiveBrailleInfo = QStringLiteral("Live braille here");
-
-    setLiveBrailleInfo(newLiveBrailleInfo);
-}
-void NotationLiveBraille::updateCursorPosition()
-{
-    if (!score()) {
-        return;
-    }
-    // TODO
 }
 
 void NotationLiveBraille::setLiveBrailleInfo(const QString& info)
@@ -302,10 +224,7 @@ void NotationLiveBraille::setCursorPosition(const int pos)
 
     notation::EngravingItem * el = brailleEngravingItems()->getEngravingItem(pos);
     if(el != nullptr) {                
-        interaction()->select({el});
-        LOGD() << el->accessibleInfo();
-    } else {        
-        LOGD() << "Item not found";
+        interaction()->select({el});        
     }
 }
 

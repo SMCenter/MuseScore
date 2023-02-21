@@ -88,6 +88,9 @@ static const Settings::Key PIANO_KEYBOARD_NUMBER_OF_KEYS(module_name,  "pianoKey
 
 static const Settings::Key STYLE_FILE_IMPORT_PATH_KEY(module_name, "import/style/styleFile");
 
+static const Settings::Key LIVE_BRAILLE_STATUS(module_name, "score/livebraille/status");
+static const Settings::Key LIVE_BRAILLE_TABLE(module_name, "score/livebraille/table");
+
 static constexpr int DEFAULT_GRID_SIZE_SPATIUM = 2;
 
 void NotationConfiguration::init()
@@ -202,9 +205,19 @@ void NotationConfiguration::init()
         m_pianoKeyboardNumberOfKeys.set(val.toInt());
     });
 
+    settings()->setDefaultValue(LIVE_BRAILLE_STATUS, Val(false));
+    settings()->valueChanged(LIVE_BRAILLE_STATUS).onReceive(this, [this](const Val&) {
+        m_liveBrailleStatusChanged.notify();
+    });
+    settings()->setDefaultValue(LIVE_BRAILLE_TABLE, Val("default"));
+    settings()->valueChanged(LIVE_BRAILLE_TABLE).onReceive(this, [this](const Val&) {
+        m_liveBrailleTableChanged.notify();
+    });
+
     engravingConfiguration()->scoreInversionChanged().onNotify(this, [this]() {
         m_foregroundChanged.notify();
     });
+
 
     mu::engraving::MScore::warnPitchRange = colorNotesOutsideOfUsablePitchRange();
     mu::engraving::MScore::defaultPlayDuration = notePlayDurationMilliseconds();
@@ -840,4 +853,34 @@ mu::io::path_t NotationConfiguration::styleFileImportPath() const
 void NotationConfiguration::setStyleFileImportPath(const io::path_t& path)
 {
     settings()->setSharedValue(STYLE_FILE_IMPORT_PATH_KEY, Val(path.toStdString()));
+}
+
+async::Notification NotationConfiguration::liveBrailleStatusChanged() const
+{
+    return m_liveBrailleStatusChanged;
+}
+
+bool NotationConfiguration::liveBrailleStatus() const
+{
+    return settings()->value(LIVE_BRAILLE_STATUS).toBool();
+}
+
+void NotationConfiguration::setLiveBrailleStatus(const bool enabled)
+{
+    settings()->setSharedValue(LIVE_BRAILLE_STATUS, Val(enabled));
+}
+
+async::Notification NotationConfiguration::liveBrailleTableChanged() const
+{
+    return m_liveBrailleTableChanged;
+}
+
+QString NotationConfiguration::liveBrailleTable() const
+{
+    return settings()->value(LIVE_BRAILLE_TABLE).toQString();
+}
+
+void NotationConfiguration::setLiveBrailleTable(const QString tabl)
+{
+    settings()->setSharedValue(LIVE_BRAILLE_TABLE, Val(tabl));
 }

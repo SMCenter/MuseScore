@@ -169,6 +169,7 @@ std::string table_unicode_to_ascii = "unicode-to-ascii.dis";
 std::string table_ascii_to_unicode = "ascii-to-unicode.dis";
 std::string table_for_literature = "unicode.dis,en-us-g2.ctb";
 std::string table_for_general = "unicode.dis,en-us-symbols.mus";
+std::string tables_dir = "";
 
 void initTables(std::string dir){
     if(dir.empty()) {
@@ -181,6 +182,14 @@ void initTables(std::string dir){
         table_ascii_to_unicode = dir + "/ascii-to-unicode.dis";
         table_for_literature = dir + "/unicode.dis," + dir + "/en-us-g2.ctb";
         table_for_general = dir + "/unicode.dis," + dir + "/en-us-symbols.mus";
+    }
+    tables_dir = dir;
+}
+void updateTableForLyrics(std::string table) {
+    if(tables_dir.empty()) {
+        table_for_literature = "unicode.dis,"  + table;
+    } else {
+        table_for_literature = tables_dir + "/unicode.dis," + tables_dir + "/" + table;
     }
 }
 

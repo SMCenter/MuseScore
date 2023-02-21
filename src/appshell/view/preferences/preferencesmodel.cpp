@@ -189,7 +189,10 @@ void PreferencesModel::load(const QString& currentPageId)
                  "Preferences/UpdatePreferencesPage.qml"),
 
         makeItem("advanced", QT_TRANSLATE_NOOP("appshell/preferences", "Advanced"), IconCode::Code::CONFIGURE,
-                 "Preferences/AdvancedPreferencesPage.qml")
+                 "Preferences/AdvancedPreferencesPage.qml"),
+
+        makeItem("livebraille", QT_TRANSLATE_NOOP("appshell/preferences", "Live braille"), IconCode::Code::VISIBILITY_OFF,
+                         "Preferences/LiveBraillePreferencesPage.qml")
     };
 
     for (PreferencePageItem* item: items) {

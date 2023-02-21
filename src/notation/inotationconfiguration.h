@@ -182,6 +182,14 @@ public:
 
     virtual io::path_t styleFileImportPath() const = 0;
     virtual void setStyleFileImportPath(const io::path_t& path) = 0;
+
+    virtual async::Notification liveBrailleStatusChanged() const = 0;
+    virtual bool liveBrailleStatus() const = 0;
+    virtual void setLiveBrailleStatus(const bool enabled) = 0;
+
+    virtual async::Notification liveBrailleTableChanged() const = 0;
+    virtual QString liveBrailleTable() const = 0;
+    virtual void setLiveBrailleTable(const QString table) = 0;
 };
 }
 
