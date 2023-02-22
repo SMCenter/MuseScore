@@ -57,7 +57,7 @@ class NotationLiveBraille : public INotationLiveBraille, public async::Asyncable
 public:
     NotationLiveBraille(const Notation* notation);
 
-    void doLiveBraille();
+    void doLiveBraille(bool force = false);
 
     ValCh<std::string> liveBrailleInfo() const override;
     ValCh<int> cursorPosition() const override;

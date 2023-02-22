@@ -90,11 +90,11 @@ NotationLiveBraille::NotationLiveBraille(const Notation* notation)
     });
 
     notation->notationChanged().onNotify(this, [this]() {
-        doLiveBraille();
+        doLiveBraille(true);
     });
 }
 
-void NotationLiveBraille::doLiveBraille()
+void NotationLiveBraille::doLiveBraille(bool force)
 {
     if (notationConfiguration()->liveBrailleStatus()) {
         EngravingItem* e = nullptr;
@@ -135,7 +135,7 @@ void NotationLiveBraille::doLiveBraille()
                 }
                 current_measure = nullptr;
             } else {
-                if (m != current_measure) {
+                if (m != current_measure || force) {
                     brailleEngravingItems()->clear();
                     LiveBraille lb(score());
                     lb.writeMeasure(brailleEngravingItems(), m);
