@@ -37,7 +37,8 @@ FocusScope {
         onCurrentItemChanged: {
             if(lbmodel.currentItemPositionStart.valueOf() != -1 &&
                     lbmodel.currentItemPositionEnd.valueOf() != -1) {
-                livebrailleinfo.select(lbmodel.currentItemPositionStart.valueOf(), lbmodel.currentItemPositionEnd.valueOf());
+                    //livebrailleinfo.select(lbmodel.currentItemPositionStart.valueOf(), lbmodel.currentItemPositionEnd.valueOf());
+                livebrailleinfo.cursorPosition = lbmodel.currentItemPositionEnd.valueOf();
             }
         }
         onEnabledChanged: {
@@ -280,9 +281,8 @@ FocusScope {
                             } else if(event.key === Qt.Key_End) {
                                 shortcut += "End"
                             }
-                            if(shortcut === "Left" || shortcut === "Right") {
-                                // DO NOTHING
-                            } else if(shortcut !== "Up" && shortcut !== "Down") {
+                            if(shortcut !== "Left" && shortcut !== "Right" &&
+                                    shortcut !== "Up" && shortcut !== "Down") {
                                 lbmodel.shorcut = shortcut;
                                 event.accepted = true;
                             }
