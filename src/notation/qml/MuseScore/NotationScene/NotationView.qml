@@ -232,6 +232,10 @@ FocusScope {
                         onActiveChanged: {
                             if (fakeNavCtrl2.active) {
                                 livebrailleinfo.forceActiveFocus();
+                                if(lbmodel.currentItemPositionStart.valueOf() != -1 &&
+                                    lbmodel.currentItemPositionEnd.valueOf() != -1) {
+                                        livebrailleinfo.cursorPosition = lbmodel.currentItemPositionEnd.valueOf();
+                                }
                             } else {
                                 livebrailleinfo.focus = false
                             }
