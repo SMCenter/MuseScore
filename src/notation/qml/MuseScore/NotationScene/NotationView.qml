@@ -38,7 +38,9 @@ FocusScope {
             if(lbmodel.currentItemPositionStart.valueOf() != -1 &&
                     lbmodel.currentItemPositionEnd.valueOf() != -1) {
                     //livebrailleinfo.select(lbmodel.currentItemPositionStart.valueOf(), lbmodel.currentItemPositionEnd.valueOf());
-                livebrailleinfo.cursorPosition = lbmodel.currentItemPositionEnd.valueOf();
+                if(livebrailleinfo.focus) {
+                    livebrailleinfo.cursorPosition = lbmodel.currentItemPositionEnd.valueOf();
+                }
             }            
         }
         onEnabledChanged: {            
