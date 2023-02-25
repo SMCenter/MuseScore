@@ -52,7 +52,7 @@ using namespace mu::io;
 using namespace mu::notation::livebraille;
 
 NotationLiveBraille::NotationLiveBraille(const Notation* notation)
-    : m_getScore(notation)
+    : m_getScore(notation)    
 {    
     setEnabled(notationConfiguration()->liveBrailleStatus());
     setCurrentItemPosition(-1, -1);
@@ -93,6 +93,7 @@ NotationLiveBraille::NotationLiveBraille(const Notation* notation)
     notation->notationChanged().onNotify(this, [this]() {
         doLiveBraille(true);
     });
+
 }
 
 void NotationLiveBraille::doLiveBraille(bool force)
@@ -133,18 +134,18 @@ void NotationLiveBraille::doLiveBraille(bool force)
                     setLiveBrailleInfo(brailleEngravingItems()->brailleStr());
                 }
                 current_measure = nullptr;
-            } else {
+            } else {                
                 if(m != current_measure || force) {
                     brailleEngravingItems()->clear();
                     LiveBraille lb(score());
                     lb.writeMeasure(brailleEngravingItems(), m);
                     setLiveBrailleInfo(brailleEngravingItems()->brailleStr());
                     current_measure = m;
-                }
+                }                
                 std::pair<int, int> pos = brailleEngravingItems()->getBraillePos(e);
                 if(pos.first != -1) {
                     setCurrentItemPosition(pos.first, pos.second);
-                }
+                }                
             }
         }
     }
@@ -270,9 +271,9 @@ void NotationLiveBraille::setShortcut(const QString &sequence)
         interaction()->selectLastElement();
     } else if(seq == "Ctrl+Home") {
         interaction()->selectFirstElement();
-    } else if(shortcutsController()->isRegistered(seq)) {
-        shortcutsController()->activate(seq);
-    }
+    }// else if(shortcutsController()->isRegistered(seq)) {
+     //   shortcutsController()->activate(seq);
+     //}
 }
 
 path_t NotationLiveBraille::tablesDefaultDirPath() const

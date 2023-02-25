@@ -36,7 +36,6 @@
 #include "async/notification.h"
 
 #include "internal/livebraille/livebraille.h"
-#include "shortcuts/ishortcutscontroller.h"
 #include "context/iglobalcontext.h"
 #include "notation/inotationconfiguration.h"
 
@@ -51,8 +50,7 @@ class Notation;
 class NotationLiveBraille : public INotationLiveBraille, public async::Asyncable
 {
     INJECT(notation, framework::IGlobalConfiguration, globalConfiguration)            
-    INJECT(notation, context::IGlobalContext, context)
-    INJECT(notation, shortcuts::IShortcutsController, shortcutsController)
+    INJECT(notation, context::IGlobalContext, context)    
     INJECT(notation, notation::INotationConfiguration, notationConfiguration)
 public:
     NotationLiveBraille(const Notation* notation);
