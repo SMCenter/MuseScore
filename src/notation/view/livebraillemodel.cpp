@@ -80,10 +80,9 @@ void LiveBrailleModel::setShortcut(const QString& sequence) const
 
 bool LiveBrailleModel::enabled() const
 {
-    if (!livebraille()) {
-        return false;
-    }
-    return livebraille()->enabled().val;
+    //if(!livebraille()) return false;
+    //return livebraille()->enabled().val;
+    return notationConfiguration()->liveBrailleStatus();
 }
 
 void LiveBrailleModel::setEnabled(bool e) const
@@ -94,9 +93,8 @@ void LiveBrailleModel::setEnabled(bool e) const
     if (livebraille()->enabled().val == e) {
         return;
     }
-
     livebraille()->setEnabled(e);
-    emit enabledChanged();
+    emit liveBrailleStatusChanged();
 }
 
 void LiveBrailleModel::load()
@@ -118,7 +116,7 @@ void LiveBrailleModel::onCurrentNotationChanged()
     listenChangesInLiveBraille();
     listenCurrentItemChanges();
     listenShortcuts();
-    listenEnabledChanges();
+    listenLiveBrailleStatusChanges();
     listenCursorPositionChanges();
 }
 
@@ -135,7 +133,6 @@ void LiveBrailleModel::listenChangesInLiveBraille()
 
 void LiveBrailleModel::listenShortcuts()
 {
-    LOGD("log");
     if (!livebraille()) {
         return;
     }
@@ -169,14 +166,13 @@ void LiveBrailleModel::listenCurrentItemChanges()
     });
 }
 
-void LiveBrailleModel::listenEnabledChanges()
+void LiveBrailleModel::listenLiveBrailleStatusChanges()
 {
-    LOGD("LiveBrailleModel::listenCursorPositionChanges");
     if (!livebraille()) {
         return;
     }
     livebraille()->enabled().ch.onReceive(this, [this](const int) {
-        emit enabledChanged();
+        emit liveBrailleStatusChanged();
     });
 }
 

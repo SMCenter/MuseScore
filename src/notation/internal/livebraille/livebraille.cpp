@@ -1579,6 +1579,7 @@ QString LiveBrailleImpl::brailleMeasure(Measure* measure, int staffCount)
             // We exchange the voices to voice 0 and back for MuseScore to add the missing beats as rests
             // Then we undo the change, so we don't have an altered score.
             // TODO: Braille dot 5 should be put before the rests that appear in Braille, but are not originally in the score
+/*
             score->deselectAll();
             score->select(measure, SelectType::RANGE, staffCount);
             score->update();
@@ -1588,7 +1589,7 @@ QString LiveBrailleImpl::brailleMeasure(Measure* measure, int staffCount)
             score->startCmd();
             score->cmdExchangeVoice(0, static_cast<int>(i));
             score->endCmd();
-
+*/
             resetOctave(staffCount);
             out << BRAILLE_FULL_MEASURE_IN_ACORD;
             for (auto seg = measure->first(); seg; seg = seg->next()) {
@@ -1800,6 +1801,7 @@ void LiveBrailleImpl::brailleMeasureItems(BrailleEngravingItems* beiz, Measure* 
             // We exchange the voices to voice 0 and back for MuseScore to add the missing beats as rests
             // Then we undo the change, so we don't have an altered score.
             // TODO: Braille dot 5 should be put before the rests that appear in Braille, but are not originally in the score
+/*
             score->deselectAll();
             score->select(measure, SelectType::RANGE, staffCount);
             score->update();
@@ -1809,7 +1811,7 @@ void LiveBrailleImpl::brailleMeasureItems(BrailleEngravingItems* beiz, Measure* 
             score->startCmd();
             score->cmdExchangeVoice(0, static_cast<int>(i));
             score->endCmd();
-
+*/
             resetOctave(staffCount);
             beiz->addEngravingItem(nullptr, BRAILLE_FULL_MEASURE_IN_ACORD);
             for (auto seg = measure->first(); seg; seg = seg->next()) {
@@ -1831,9 +1833,9 @@ void LiveBrailleImpl::brailleMeasureItems(BrailleEngravingItems* beiz, Measure* 
             resetOctave(staffCount);
 
             // Undo filling the missing beats with rests, so we don't have an altered score.
-            score->undoRedo(true, nullptr);
-            score->undoRedo(true, nullptr);
-            score->deselectAll();
+//            score->undoRedo(true, nullptr);
+//            score->undoRedo(true, nullptr);
+//            score->deselectAll();
         }
     }
 

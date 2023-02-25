@@ -47,7 +47,7 @@ class LiveBrailleModel : public QObject, public async::Asyncable, public actions
     Q_PROPERTY(int currentItemPositionStart READ currentItemPositionStart NOTIFY currentItemChanged)
     Q_PROPERTY(int currentItemPositionEnd READ currentItemPositionEnd NOTIFY currentItemChanged)
     Q_PROPERTY(QString shorcut READ shortcut WRITE setShortcut NOTIFY shortcutFired)
-    Q_PROPERTY(bool enabled READ enabled WRITE setEnabled NOTIFY enabledChanged)
+    Q_PROPERTY(bool enabled READ enabled WRITE setEnabled NOTIFY liveBrailleStatusChanged)
 
 public:
     explicit LiveBrailleModel(QObject* parent = nullptr);
@@ -73,7 +73,7 @@ signals:
     void cursorPositionChanged() const;
     void currentItemChanged() const;
     void shortcutFired() const;
-    void enabledChanged() const;
+    void liveBrailleStatusChanged() const;
 
 private:
     notation::INotationPtr notation() const;
@@ -85,7 +85,7 @@ private:
     void listenCursorPositionChanges();
     void listenCurrentItemChanges();
     void listenShortcuts();
-    void listenEnabledChanges();
+    void listenLiveBrailleStatusChanges();
 };
 }
 

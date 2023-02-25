@@ -32,22 +32,6 @@ import "internal"
 FocusScope {
     id: root
 
-    LiveBrailleModel {
-        id: lbmodel
-        onCurrentItemChanged: {
-            if(lbmodel.currentItemPositionStart.valueOf() != -1 &&
-                    lbmodel.currentItemPositionEnd.valueOf() != -1) {
-                    //livebrailleinfo.select(lbmodel.currentItemPositionStart.valueOf(), lbmodel.currentItemPositionEnd.valueOf());
-                if(livebrailleinfo.focus) {
-                    livebrailleinfo.cursorPosition = lbmodel.currentItemPositionEnd.valueOf();
-                }
-            }
-        }
-        onEnabledChanged: {
-            livebrailleview.visible = lbmodel.enabled
-        }
-    }
-
     property alias name: notationView.objectName
     property alias publishMode: notationView.publishMode
 
@@ -190,14 +174,32 @@ FocusScope {
                 }
             }
 
+            LiveBrailleModel {
+                id: lbmodel
+
+                onCurrentItemChanged: {
+                    if(lbmodel.currentItemPositionStart.valueOf() != -1 &&
+                            lbmodel.currentItemPositionEnd.valueOf() != -1) {
+                            //livebrailleinfo.select(lbmodel.currentItemPositionStart.valueOf(), lbmodel.currentItemPositionEnd.valueOf());
+                        if(livebrailleinfo.focus) {
+                            livebrailleinfo.cursorPosition = lbmodel.currentItemPositionEnd.valueOf();
+                        }
+                    }
+                }
+                onLiveBrailleStatusChanged: {
+                    livebrailleview.visible = lbmodel.enabled
+                }
+                Component.onCompleted: {
+                    livebrailleview.visible = lbmodel.enabled
+                }
+            }
 
             StyledFlickable {
                 id: livebrailleview
+
                 SplitView.fillWidth: true
                 SplitView.preferredHeight: 50
                 SplitView.minimumHeight: 30
-
-                visible: lbmodel.enabled
 
                 TextArea.flickable: TextArea {
                     id: livebrailleinfo
