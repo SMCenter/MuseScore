@@ -85,6 +85,7 @@ private:
     void setLiveBrailleInfo(const QString& info);
     void setCurrentShortcut(const QString& sequence);
 
+    void updateTableForLyricsFromPreferences();
     io::path_t tablesDefaultDirPath() const;
 
     const IGetScore* m_getScore = nullptr;
