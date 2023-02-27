@@ -70,20 +70,9 @@ NotationLiveBraille::NotationLiveBraille(const Notation* notation)
         setEnabled(enabled);
     });
 
+    updateTableForLyricsFromPreferences();
     notationConfiguration()->liveBrailleTableChanged().onNotify(this, [this]() {
-        QString table = notationConfiguration()->liveBrailleTable();        
-        int startPos = table.indexOf('[');
-        int endPos = table.indexOf(']');
-        if(startPos != -1 && endPos != -1) {
-            table = table.mid(startPos + 1, endPos - startPos - 1);
-            table = QString::fromStdString(tables_dir) + "/" + table;
-            if(check_tables(table.toStdString().c_str()) == 0) {
-                LOGD() << "Table ok: " << table;
-                updateTableForLyrics(table.toStdString());
-            } else {
-                LOGD() << "Table check error!";
-            }
-        }
+        updateTableForLyricsFromPreferences();
     });
 
     notation->interaction()->selectionChanged().onNotify(this, [this]() {
@@ -94,6 +83,21 @@ NotationLiveBraille::NotationLiveBraille(const Notation* notation)
         doLiveBraille(true);
     });
 
+}
+
+void NotationLiveBraille::updateTableForLyricsFromPreferences() {
+    QString table = notationConfiguration()->liveBrailleTable();
+    int startPos = table.indexOf('[');
+    int endPos = table.indexOf(']');
+    if(startPos != -1 && endPos != -1) {
+        table = table.mid(startPos + 1, endPos - startPos - 1);
+        QString table_full_path = QString::fromStdString(tables_dir) + "/" + table;
+        if(check_tables(table_full_path.toStdString().c_str()) == 0) {
+            updateTableForLyrics(table.toStdString());
+        } else {
+            LOGD() << "Table check error!";
+        }
+    }
 }
 
 void NotationLiveBraille::doLiveBraille(bool force)

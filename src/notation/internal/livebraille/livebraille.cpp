@@ -511,13 +511,22 @@ void BrailleEngravingItems::addPrefixStr(QString str) {
         _items[i].second.second += len;
     }
 }
-void BrailleEngravingItems::addEngravingItem(mu::engraving::EngravingItem* el, QString braille) {
-    QString unitxt = QString::fromStdString(braille_long_translate(table_ascii_to_unicode.c_str(), braille.toStdString()));
+void BrailleEngravingItems::addEngravingItem(mu::engraving::EngravingItem* el, QString braille) {    
+    //braille = braille.replace(QRegularExpression ("/\\/"), "\\\\");
+    //Manual doubling slashes '\' because Regex doesn't work. Don't know why.
+    QString txt = QString();
+    for(int i=0; i < braille.length(); i++) {
+        if(braille.at(i) == '\\') {
+            txt.append(braille.at(i));
+        }
+        txt.append(braille.at(i));
+    }
+    QString unitxt = QString::fromStdString(braille_long_translate(table_ascii_to_unicode.c_str(), txt.toStdString()));
 
     int start = braille_str.length();
     int end = start + unitxt.length();
-    //LOGD() << "addEngravingItem " << start << " " << end << " :" << el->accessibleInfo();
     _items.push_back({el, {start, end}});
+
     braille_str.append(unitxt);
 }
 void BrailleEngravingItems::addLyricsItem(mu::engraving::Lyrics* l) {
@@ -1125,6 +1134,7 @@ bool LiveBrailleImpl::writeMeasure(BrailleEngravingItems * beiz, Measure * measu
     std::vector<BrailleEngravingItems> measureBraille(nrStaves);
     std::vector<BrailleEngravingItems> lyrics(nrStaves + 1);
 
+    /*
     for (MeasureBase* mb = score->measures()->first(); mb != nullptr; mb = mb->next()) {
         if (!mb->isMeasure() || mb != measure ) {
             continue;
@@ -1141,7 +1151,7 @@ bool LiveBrailleImpl::writeMeasure(BrailleEngravingItems * beiz, Measure * measu
             BrailleEngravingItems measureLyrics;
 
             brailleMeasureItems(&measureBraille, m, static_cast<int>(i));
-            //measureBraille.log();
+            measureBraille.log();
             beiz->join(&measureBraille, true, false);
 
             brailleMeasureLyrics(&measureLyrics, m, static_cast<int>(i));
@@ -1150,6 +1160,25 @@ bool LiveBrailleImpl::writeMeasure(BrailleEngravingItems * beiz, Measure * measu
             }
         }
     }
+    */
+    if (measure->hasMMRest() && score->styleB(Sid::createMultiMeasureRests)) {
+        measure = measure->mmRest();
+    }
+
+    for (size_t i = 0; i < nrStaves; ++i) {
+        BrailleEngravingItems measureBraille;
+        BrailleEngravingItems measureLyrics;
+
+        brailleMeasureItems(&measureBraille, measure, static_cast<int>(i));
+        measureBraille.log();
+        beiz->join(&measureBraille, true, false);
+
+        brailleMeasureLyrics(&measureLyrics, measure, static_cast<int>(i));
+        if(!measureLyrics.isEmpty()) {
+            beiz->join(&measureLyrics, true, false);
+        }
+    }
+
     return true;
 }
 
