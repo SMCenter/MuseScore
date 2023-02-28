@@ -78,32 +78,32 @@ sign \x007a 1356     # 122 z    LATIN SMALL LETTER Z
 # except that dot7 is added:
 
         #Hex   Dots       Dec Char Description
-sign \x0041 17       #  65 A    LATIN CAPITAL LETTER A
-sign \x0042 127      #  66 B    LATIN CAPITAL LETTER B
-sign \x0043 147      #  67 C    LATIN CAPITAL LETTER C
-sign \x0044 1457     #  68 D    LATIN CAPITAL LETTER D
-sign \x0045 157      #  69 E    LATIN CAPITAL LETTER E
-sign \x0046 1247     #  70 F    LATIN CAPITAL LETTER F
-sign \x0047 12457    #  71 G    LATIN CAPITAL LETTER G
-sign \x0048 1257     #  72 H    LATIN CAPITAL LETTER H
-sign \x0049 247      #  73 I    LATIN CAPITAL LETTER I
-sign \x004a 2457     #  74 J    LATIN CAPITAL LETTER J
-sign \x004b 137      #  75 K    LATIN CAPITAL LETTER K
-sign \x004c 1237     #  76 L    LATIN CAPITAL LETTER L
-sign \x004d 1347     #  77 M    LATIN CAPITAL LETTER M
-sign \x004e 13457    #  78 N    LATIN CAPITAL LETTER N
-sign \x004f 1357     #  79 O    LATIN CAPITAL LETTER O
-sign \x0050 12347    #  80 P    LATIN CAPITAL LETTER P
-sign \x0051 123457   #  81 Q    LATIN CAPITAL LETTER Q
-sign \x0052 12357    #  82 R    LATIN CAPITAL LETTER R
-sign \x0053 2347     #  83 S    LATIN CAPITAL LETTER S
-sign \x0054 23457    #  84 T    LATIN CAPITAL LETTER T
-sign \x0055 1367     #  85 U    LATIN CAPITAL LETTER U
-sign \x0056 12367    #  86 V    LATIN CAPITAL LETTER V
-sign \x0057 24567    #  87 W    LATIN CAPITAL LETTER W
-sign \x0058 13467    #  88 X    LATIN CAPITAL LETTER X
-sign \x0059 134567   #  89 Y    LATIN CAPITAL LETTER Y
-sign \x005a 13567    #  90 Z    LATIN CAPITAL LETTER Z
+sign \x0041 1       #  65 A    LATIN CAPITAL LETTER A
+sign \x0042 12      #  66 B    LATIN CAPITAL LETTER B
+sign \x0043 14      #  67 C    LATIN CAPITAL LETTER C
+sign \x0044 145     #  68 D    LATIN CAPITAL LETTER D
+sign \x0045 15      #  69 E    LATIN CAPITAL LETTER E
+sign \x0046 124     #  70 F    LATIN CAPITAL LETTER F
+sign \x0047 1245    #  71 G    LATIN CAPITAL LETTER G
+sign \x0048 125     #  72 H    LATIN CAPITAL LETTER H
+sign \x0049 24      #  73 I    LATIN CAPITAL LETTER I
+sign \x004a 245     #  74 J    LATIN CAPITAL LETTER J
+sign \x004b 13      #  75 K    LATIN CAPITAL LETTER K
+sign \x004c 123     #  76 L    LATIN CAPITAL LETTER L
+sign \x004d 134     #  77 M    LATIN CAPITAL LETTER M
+sign \x004e 1345    #  78 N    LATIN CAPITAL LETTER N
+sign \x004f 135     #  79 O    LATIN CAPITAL LETTER O
+sign \x0050 1234    #  80 P    LATIN CAPITAL LETTER P
+sign \x0051 12345   #  81 Q    LATIN CAPITAL LETTER Q
+sign \x0052 1235    #  82 R    LATIN CAPITAL LETTER R
+sign \x0053 234     #  83 S    LATIN CAPITAL LETTER S
+sign \x0054 2345    #  84 T    LATIN CAPITAL LETTER T
+sign \x0055 136     #  85 U    LATIN CAPITAL LETTER U
+sign \x0056 1236    #  86 V    LATIN CAPITAL LETTER V
+sign \x0057 2456    #  87 W    LATIN CAPITAL LETTER W
+sign \x0058 1346    #  88 X    LATIN CAPITAL LETTER X
+sign \x0059 13456   #  89 Y    LATIN CAPITAL LETTER Y
+sign \x005a 1356    #  90 Z    LATIN CAPITAL LETTER Z
 
 # The 10 decimal digits 0-9) are the same as in the Nemeth Code:
 
@@ -156,10 +156,10 @@ sign \x003f 1456     #  63 ?    QUESTION MARK
 sign \x0022 5        #  34 "    QUOTATION MARK
 sign \x0027 3        #  39 '    APOSTROPHE
 sign \x0060 4        #  96 `    GRAVE ACCENT
-sign \x005e 457      #  94 ^    CIRCUMFLEX ACCENT
+sign \x005e 45      #  94 ^    CIRCUMFLEX ACCENT
 sign \x007e 45       # 126 ~    TILDE
-sign \x005b 2467     #  91 [    LEFT SQUARE BRACKET
-sign \x005d 124567   #  93 ]    RIGHT SQUARE BRACKET
+sign \x005b 246     #  91 [    LEFT SQUARE BRACKET
+sign \x005d 12456   #  93 ]    RIGHT SQUARE BRACKET
 sign \x007b 246      # 123 {    LEFT CURLY BRACKET
 sign \x007d 12456    # 125 }    RIGHT CURLY BRACKET
 sign \x003d 123456   #  61 =    EQUALS SIGN
@@ -167,14 +167,14 @@ sign \x003c 126      #  60 <    LESS-THAN SIGN
 sign \x003e 345      #  62 >    GREATER-THAN SIGN
 sign \x0024 1246     #  36 $    DOLLAR SIGN
 sign \x0025 146      #  37 %    PERCENT SIGN
-sign \x0040 47       #  64 @    COMMERCIAL AT
+sign \x0040 4       #  64 @    COMMERCIAL AT
 sign \x007c 1256     # 124 |    VERTICAL LINE
-sign \x005c 12567    #  92 \    REVERSE SOLIDUS
+sign \x005c 1256    #  92 \    REVERSE SOLIDUS
 sign \x005f 456      #  95 _    LOW LINE
 
 # The DEL control character
         #Hex   Dots       Dec Char Description
-sign \x007f 4567     # 127 ^?   DELETE
+sign \x007f 456     # 127 ^?   DELETE
 
 # Each of the characters within the basic control character block (0-31) is the
 # same as its corresponding character within both the uppercase block (64-95)
