@@ -19,8 +19,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#ifndef MU_IMPORTEXPORT_EXPORTBRAILLE_H
-#define MU_IMPORTEXPORT_EXPORTBRAILLE_H
+#ifndef MU_NOTATION_LIVEBRAILLE_LIVEBRAILLE_H
+#define MU_NOTATION_LIVEBRAILLE_LIVEBRAILLE_H
 
 #include <QIODevice>
 
@@ -28,19 +28,19 @@ namespace mu::engraving {
 class Score;
 }
 
-namespace mu::iex::braille {
-class ExportBrailleImpl;
-class ExportBraille
+namespace mu::notation::livebraille {
+class LiveBrailleImpl;
+class LiveBraille
 {
 public:
-    ExportBraille(mu::engraving::Score* score);
-    ~ExportBraille();
+    LiveBraille(mu::engraving::Score* score);
+    ~LiveBraille();
 
     bool write(QIODevice& destinationDevice);
 
 private:
-    ExportBrailleImpl* m_impl = nullptr;
+    LiveBrailleImpl* m_impl = nullptr;
 };
 }
 
-#endif // MU_IMPORTEXPORT_EXPORTBRAILLE_H
+#endif // MU_NOTATION_LIVEBRAILLE_LIVEBRAILLE_H

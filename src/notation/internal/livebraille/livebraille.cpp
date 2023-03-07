@@ -20,7 +20,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "exportbraille.h"
+#include "livebraille.h"
 
 #include <QRegularExpression>
 
@@ -84,7 +84,7 @@
 using namespace mu;
 using namespace mu::engraving;
 
-namespace mu::iex::braille {
+namespace mu::notation::livebraille {
 // Table 1. Page 2. Music Braille Code 2015.
 #define BRAILLE_EQUALS_METRONOME        QString("7")
 #define BRAILLE_MUSICAL_HYPEN           QString("\"")
@@ -469,7 +469,7 @@ public:
 // published by the Braille Authority of North America
 // http://www.brailleauthority.org/music/Music_Braille_Code_2015.pdf
 // This class is not thread safe.
-class ExportBrailleImpl
+class LiveBrailleImpl
 {
     static constexpr int MAX_CHARS_PER_LINE = 40;
 
@@ -537,7 +537,7 @@ class ExportBrailleImpl
     QString brailleHairpinAfter(ChordRest* chordRest, const std::vector<Hairpin*>& hairpin);
 
 public:
-    ExportBrailleImpl(Score* s)
+    LiveBrailleImpl(Score* s)
     {
         score = s;
         for (size_t i = 0; i < score->staves().size(); ++i) {
@@ -550,34 +550,34 @@ public:
     bool write(QIODevice& device);
 };
 
-ExportBraille::ExportBraille(Score* score)
-    : m_impl(new ExportBrailleImpl(score))
+LiveBraille::LiveBraille(Score* score)
+    : m_impl(new LiveBrailleImpl(score))
 {
 }
 
-ExportBraille::~ExportBraille()
+LiveBraille::~LiveBraille()
 {
     delete m_impl;
 }
 
-bool ExportBraille::write(QIODevice& device)
+bool LiveBraille::write(QIODevice& device)
 {
     return m_impl->write(device);
 }
 
-void ExportBrailleImpl::resetOctave(size_t stave)
+void LiveBrailleImpl::resetOctave(size_t stave)
 {
     previousNote[stave]  = nullptr;
 }
 
-void ExportBrailleImpl::resetOctaves()
+void LiveBrailleImpl::resetOctaves()
 {
     for (size_t i = 0; i < score->staves().size(); ++i) {
         resetOctave(i);
     }
 }
 
-void ExportBrailleImpl::credits(QIODevice& device)
+void LiveBrailleImpl::credits(QIODevice& device)
 {
     QTextStream out(&device);
     // find the vboxes in every page and write their elements as credit-words
@@ -612,7 +612,7 @@ void ExportBrailleImpl::credits(QIODevice& device)
     out.flush();
 }
 
-void ExportBrailleImpl::instruments(QIODevice& device)
+void LiveBrailleImpl::instruments(QIODevice& device)
 {
     //Print staff number to instrument mapping.
     QTextStream out(&device);
@@ -623,7 +623,7 @@ void ExportBrailleImpl::instruments(QIODevice& device)
     out.flush();
 }
 
-bool ExportBrailleImpl::write(QIODevice& device)
+bool LiveBrailleImpl::write(QIODevice& device)
 {
     credits(device);
     instruments(device);
@@ -726,7 +726,7 @@ bool ExportBrailleImpl::write(QIODevice& device)
     return true;
 }
 
-bool ExportBrailleImpl::ascendingChords(ClefType clefType)
+bool LiveBrailleImpl::ascendingChords(ClefType clefType)
 {
     // 9.2. Direction of Intervals (in Chords). Page 75. Music Braille Code 2015
     // In Treble, Soprano, Alto clefs: Write the upper most note, then rest of notes as intervals downward
@@ -776,7 +776,7 @@ bool ExportBrailleImpl::ascendingChords(ClefType clefType)
     return false;
 }
 
-QString ExportBrailleImpl::brailleClef(Clef* clef)
+QString LiveBrailleImpl::brailleClef(Clef* clef)
 {
     //In Braille, the clef is printed only at it's first appearance.
     if (currentCleffType[clef->staffIdx()] == clef->clefType()) {
@@ -848,7 +848,7 @@ QString ExportBrailleImpl::brailleClef(Clef* clef)
     }
 }
 
-QString ExportBrailleImpl::brailleTimeSig(TimeSig* timeSig)
+QString LiveBrailleImpl::brailleTimeSig(TimeSig* timeSig)
 {
     if (!timeSig || timeSig->segment()->isTimeSigAnnounceType()) {
         return QString();
@@ -901,7 +901,7 @@ QString ExportBrailleImpl::brailleTimeSig(TimeSig* timeSig)
     return rez;
 }
 
-QString ExportBrailleImpl::brailleMMRest(MMRest* mmRest)
+QString LiveBrailleImpl::brailleMMRest(MMRest* mmRest)
 {
     if (!mmRest) {
         return QString();
@@ -916,7 +916,7 @@ QString ExportBrailleImpl::brailleMMRest(MMRest* mmRest)
     return TextToUEBBraille().braille(QString::number(mmRest->measure()->mmRestCount())) + BRAILLE_REST_MEASURE;
 }
 
-QString ExportBrailleImpl::brailleRest(Rest* rest)
+QString LiveBrailleImpl::brailleRest(Rest* rest)
 {
     QString restBraille;
     switch (rest->durationType().type()) {
@@ -985,7 +985,7 @@ QString ExportBrailleImpl::brailleRest(Rest* rest)
     return result;
 }
 
-QString ExportBrailleImpl::brailleBreath(Breath* breath)
+QString LiveBrailleImpl::brailleBreath(Breath* breath)
 {
     if (!breath) {
         return QString();
@@ -1008,7 +1008,7 @@ QString ExportBrailleImpl::brailleBreath(Breath* breath)
     return QString();
 }
 
-BarLine* ExportBrailleImpl::lastBarline(Measure* measure, track_idx_t track)
+BarLine* LiveBrailleImpl::lastBarline(Measure* measure, track_idx_t track)
 {
     for (Segment* seg = measure->last(); seg; seg = seg->prev()) {
         EngravingItem* el = seg->element(track);
@@ -1019,7 +1019,7 @@ BarLine* ExportBrailleImpl::lastBarline(Measure* measure, track_idx_t track)
     return nullptr;
 }
 
-BarLine* ExportBrailleImpl::firstBarline(Measure* measure, track_idx_t track)
+BarLine* LiveBrailleImpl::firstBarline(Measure* measure, track_idx_t track)
 {
     for (Segment* seg = measure->first(); seg; seg = seg->next()) {
         EngravingItem* el = seg->element(track);
@@ -1033,7 +1033,7 @@ BarLine* ExportBrailleImpl::firstBarline(Measure* measure, track_idx_t track)
     return nullptr;
 }
 
-QString ExportBrailleImpl::brailleMeasure(Measure* measure, int staffCount)
+QString LiveBrailleImpl::brailleMeasure(Measure* measure, int staffCount)
 {
     QString rez;
     QTextStream out(&rez);
@@ -1168,7 +1168,7 @@ QString ExportBrailleImpl::brailleMeasure(Measure* measure, int staffCount)
     return rez;
 }
 
-QString ExportBrailleImpl::brailleOctave(int octave)
+QString LiveBrailleImpl::brailleOctave(int octave)
 {
     //Table 9. Page 7. Music Braille Code 2015.
     if (octave < 1) {
@@ -1202,7 +1202,7 @@ QString ExportBrailleImpl::brailleOctave(int octave)
     return QString();
 }
 
-QString ExportBrailleImpl::brailleAccidentalType(AccidentalType accidental)
+QString LiveBrailleImpl::brailleAccidentalType(AccidentalType accidental)
 {
     switch (accidental) {
     case AccidentalType::NONE:               return QString();
@@ -1239,7 +1239,7 @@ QString ExportBrailleImpl::brailleAccidentalType(AccidentalType accidental)
     return QString();
 }
 
-QString ExportBrailleImpl::brailleNote(const QString& pitchName, DurationType durationType, int dots)
+QString LiveBrailleImpl::brailleNote(const QString& pitchName, DurationType durationType, int dots)
 {
     QString noteBraille = QString();
     static QMap<DurationType, QMap<QString, QString> > noteToBraille;
@@ -1349,7 +1349,7 @@ QString ExportBrailleImpl::brailleNote(const QString& pitchName, DurationType du
     return noteBraille;
 }
 
-QString ExportBrailleImpl::brailleChordRootNote(Chord* chord, Note* rootNote)
+QString LiveBrailleImpl::brailleChordRootNote(Chord* chord, Note* rootNote)
 {
     String pitchName;
     String accidental; //TODO, do we need this for anything?
@@ -1397,7 +1397,7 @@ QString ExportBrailleImpl::brailleChordRootNote(Chord* chord, Note* rootNote)
         + noteTieBraille;
 }
 
-int ExportBrailleImpl::computeInterval(Note* note1, Note* note2, bool ignoreOctave)
+int LiveBrailleImpl::computeInterval(Note* note1, Note* note2, bool ignoreOctave)
 {
     // TODO is it possible to not have pitch?
     // if yes, then this algorithm will fail in that case
@@ -1439,7 +1439,7 @@ int ExportBrailleImpl::computeInterval(Note* note1, Note* note2, bool ignoreOcta
 //    note:  The note for which we are currently representing the braille interval
 //    return the braille interval representation in the chord
 //-----------------------------------------------------------------------------------
-QString ExportBrailleImpl::brailleChordInterval(Note* rootNote, const std::vector<Note*>& notes, Note* note)
+QString LiveBrailleImpl::brailleChordInterval(Note* rootNote, const std::vector<Note*>& notes, Note* note)
 {
     if (!rootNote || !note || notes.size() < 2) {
         return QString();
@@ -1508,7 +1508,7 @@ QString ExportBrailleImpl::brailleChordInterval(Note* rootNote, const std::vecto
         + noteTieBraille;
 }
 
-QString ExportBrailleImpl::brailleChord(Chord* chord)
+QString LiveBrailleImpl::brailleChord(Chord* chord)
 {
     // 9.3 Interval Doubling and 9.5 Moving notes methods are not implemented as they are optional methods
 
@@ -1602,7 +1602,7 @@ QString ExportBrailleImpl::brailleChord(Chord* chord)
     return result;
 }
 
-QString ExportBrailleImpl::brailleGraceNoteMarking(Chord* chord)
+QString LiveBrailleImpl::brailleGraceNoteMarking(Chord* chord)
 {
     // 16.2.1 - 16.2.3. Page 111 - 112. Music Braille Code 2015.
     // TODO: doubling the grace note sign where there are more than 4 grace notes.
@@ -1621,7 +1621,7 @@ QString ExportBrailleImpl::brailleGraceNoteMarking(Chord* chord)
     return result;
 }
 
-QString ExportBrailleImpl::brailleBarline(BarLine* barline)
+QString LiveBrailleImpl::brailleBarline(BarLine* barline)
 {
     if (!barline) {
         return QString();
@@ -1731,7 +1731,7 @@ QString ExportBrailleImpl::brailleBarline(BarLine* barline)
         + musicalHypenBrailleAfter;
 }
 
-QString ExportBrailleImpl::brailleDynamic(Dynamic* dynamic)
+QString LiveBrailleImpl::brailleDynamic(Dynamic* dynamic)
 {
     if (!dynamic || dynamic->plainText().isEmpty()) {
         return QString();
@@ -1742,7 +1742,7 @@ QString ExportBrailleImpl::brailleDynamic(Dynamic* dynamic)
     return ">" + TextToUEBBraille().braille(dynamic->plainText());
 }
 
-QString ExportBrailleImpl::brailleTempoText(TempoText* tempoText, int staffIdx)
+QString LiveBrailleImpl::brailleTempoText(TempoText* tempoText, int staffIdx)
 {
     if (!tempoText) {
         return QString();
@@ -1779,7 +1779,7 @@ QString ExportBrailleImpl::brailleTempoText(TempoText* tempoText, int staffIdx)
     }
 }
 
-QString ExportBrailleImpl::brailleKeySig(KeySig* keySig)
+QString LiveBrailleImpl::brailleKeySig(KeySig* keySig)
 {
     //In Braille, the key signature is printed only at it's first appearance.
     //Paragraf 6.5. Page 61. Music Braille Code 2015.
@@ -1847,7 +1847,7 @@ QString ExportBrailleImpl::brailleKeySig(KeySig* keySig)
     return brailleKeySig;
 }
 
-QString ExportBrailleImpl::brailleTuplet(Tuplet* tuplet, DurationElement* el)
+QString LiveBrailleImpl::brailleTuplet(Tuplet* tuplet, DurationElement* el)
 {
     if (tuplet == nullptr || *tuplet->elements().begin() != el) {
         return QString();
@@ -1856,7 +1856,7 @@ QString ExportBrailleImpl::brailleTuplet(Tuplet* tuplet, DurationElement* el)
     return QString("_") + QString::number(tuplet->ratio().numerator()) + QString("'");
 }
 
-QString ExportBrailleImpl::brailleTie(Chord* chord)
+QString LiveBrailleImpl::brailleTie(Chord* chord)
 {
     // This is not a chord
     if (!chord || chord->notes().size() < 2) {
@@ -1899,7 +1899,7 @@ QString ExportBrailleImpl::brailleTie(Chord* chord)
     return BRAILLE_TIE_CHORD;
 }
 
-bool ExportBrailleImpl::hasTies(ChordRest* chordRest)
+bool LiveBrailleImpl::hasTies(ChordRest* chordRest)
 {
     if (chordRest->isRest()) {
         return false;
@@ -1915,7 +1915,7 @@ bool ExportBrailleImpl::hasTies(ChordRest* chordRest)
     return false;
 }
 
-QString ExportBrailleImpl::brailleTie(Note* note)
+QString LiveBrailleImpl::brailleTie(Note* note)
 {
     if (!note || !note->tieFor() || !brailleTie(note->chord()).isEmpty()) {
         return QString();
@@ -1924,7 +1924,7 @@ QString ExportBrailleImpl::brailleTie(Note* note)
     return BRAILLE_TIE;
 }
 
-QString ExportBrailleImpl::brailleArpeggio(Arpeggio* arpeggio)
+QString LiveBrailleImpl::brailleArpeggio(Arpeggio* arpeggio)
 {
     if (!arpeggio) {
         return QString();
@@ -1952,7 +1952,7 @@ QString ExportBrailleImpl::brailleArpeggio(Arpeggio* arpeggio)
     return result;
 }
 
-QString ExportBrailleImpl::brailleTremolo(Chord* chord)
+QString LiveBrailleImpl::brailleTremolo(Chord* chord)
 {
     if (!chord->tremolo() || chord != chord->tremolo()->chord1()) {
         return QString();
@@ -1973,7 +1973,7 @@ QString ExportBrailleImpl::brailleTremolo(Chord* chord)
     return QString();
 }
 
-QString ExportBrailleImpl::brailleArticulation(Articulation* artic)
+QString LiveBrailleImpl::brailleArticulation(Articulation* artic)
 {
     switch (artic->symId()) {
     case SymId::articAccentAbove:
@@ -2078,7 +2078,7 @@ QString ExportBrailleImpl::brailleArticulation(Articulation* artic)
     return QString();
 }
 
-QString ExportBrailleImpl::brailleFingeringAfter(Fingering* fingering)
+QString LiveBrailleImpl::brailleFingeringAfter(Fingering* fingering)
 {
     // 15.1 - 15.2. Page 108. Music Braille Code 2015.
     // TODO: 15.3 - 15.4. Page 108. Music Braille Code 2015.
@@ -2114,7 +2114,7 @@ QString ExportBrailleImpl::brailleFingeringAfter(Fingering* fingering)
     return result;
 }
 
-QString ExportBrailleImpl::brailleGlissando(Note* note)
+QString LiveBrailleImpl::brailleGlissando(Note* note)
 {
     if (!note) {
         return QString();
@@ -2129,7 +2129,7 @@ QString ExportBrailleImpl::brailleGlissando(Note* note)
     return QString();
 }
 
-QString ExportBrailleImpl::brailleMeasureRepeat(MeasureRepeat* measureRepeat)
+QString LiveBrailleImpl::brailleMeasureRepeat(MeasureRepeat* measureRepeat)
 {
     if (!measureRepeat) {
         return QString();
@@ -2138,7 +2138,7 @@ QString ExportBrailleImpl::brailleMeasureRepeat(MeasureRepeat* measureRepeat)
     return BRAILLE_MEASURE_REPEAT;
 }
 
-QString ExportBrailleImpl::brailleVolta(Measure* measure, Volta* volta, int staffCount)
+QString LiveBrailleImpl::brailleVolta(Measure* measure, Volta* volta, int staffCount)
 {
     if (!volta || volta->startMeasure() != measure || volta->text().isEmpty()) {
         return QString();
@@ -2162,7 +2162,7 @@ QString ExportBrailleImpl::brailleVolta(Measure* measure, Volta* volta, int staf
     return result;
 }
 
-std::vector<Slur*> ExportBrailleImpl::slurs(ChordRest* chordRest)
+std::vector<Slur*> LiveBrailleImpl::slurs(ChordRest* chordRest)
 {
     std::vector<Slur*> result;
     SpannerMap& smap = score->spannerMap();
@@ -2179,7 +2179,7 @@ std::vector<Slur*> ExportBrailleImpl::slurs(ChordRest* chordRest)
     return result;
 }
 
-std::vector<Hairpin*> ExportBrailleImpl::hairpins(ChordRest* chordRest)
+std::vector<Hairpin*> LiveBrailleImpl::hairpins(ChordRest* chordRest)
 {
     std::vector<Hairpin*> result;
     SpannerMap& smap = score->spannerMap();
@@ -2196,7 +2196,7 @@ std::vector<Hairpin*> ExportBrailleImpl::hairpins(ChordRest* chordRest)
     return result;
 }
 
-QString ExportBrailleImpl::brailleSlurBefore(ChordRest* chordRest, const std::vector<Slur*>& slurs)
+QString LiveBrailleImpl::brailleSlurBefore(ChordRest* chordRest, const std::vector<Slur*>& slurs)
 {
     if (!chordRest || slurs.empty()) {
         return QString();
@@ -2220,7 +2220,7 @@ QString ExportBrailleImpl::brailleSlurBefore(ChordRest* chordRest, const std::ve
     return longSlur;
 }
 
-QString ExportBrailleImpl::brailleSlurAfter(ChordRest* chordRest, const std::vector<Slur*>& crSlurs)
+QString LiveBrailleImpl::brailleSlurAfter(ChordRest* chordRest, const std::vector<Slur*>& crSlurs)
 {
     if (!chordRest || crSlurs.empty()) {
         return QString();
@@ -2269,7 +2269,7 @@ QString ExportBrailleImpl::brailleSlurAfter(ChordRest* chordRest, const std::vec
     return shortSlurBraille + longSlurBraille;
 }
 
-bool ExportBrailleImpl::isShortShortSlurConvergence(const std::vector<Slur*>& slurs)
+bool LiveBrailleImpl::isShortShortSlurConvergence(const std::vector<Slur*>& slurs)
 {
     for (Slur* slur1 : slurs) {
         for (Slur* slur2 : slurs) {
@@ -2284,7 +2284,7 @@ bool ExportBrailleImpl::isShortShortSlurConvergence(const std::vector<Slur*>& sl
     return false;
 }
 
-bool ExportBrailleImpl::isLongLongSlurConvergence(const std::vector<Slur*>& slurs)
+bool LiveBrailleImpl::isLongLongSlurConvergence(const std::vector<Slur*>& slurs)
 {
     for (Slur* slur1 : slurs) {
         for (Slur* slur2 : slurs) {
@@ -2299,7 +2299,7 @@ bool ExportBrailleImpl::isLongLongSlurConvergence(const std::vector<Slur*>& slur
     return false;
 }
 
-int ExportBrailleImpl::notesInSlur(Slur* slur)
+int LiveBrailleImpl::notesInSlur(Slur* slur)
 {
     int result = 0;
     for (Segment* segment = slur->startSegment(); segment; segment = segment->next1()) {
@@ -2336,7 +2336,7 @@ int ExportBrailleImpl::notesInSlur(Slur* slur)
     return result;
 }
 
-bool ExportBrailleImpl::isShortSlur(Slur* slur)
+bool LiveBrailleImpl::isShortSlur(Slur* slur)
 {
     int notesNr = notesInSlur(slur);
 
@@ -2347,13 +2347,13 @@ bool ExportBrailleImpl::isShortSlur(Slur* slur)
     return false;
 }
 
-bool ExportBrailleImpl::isLongSlur(Slur* slur)
+bool LiveBrailleImpl::isLongSlur(Slur* slur)
 {
     //13.3. Page 94. Braille Music Code 2015.
     return !isShortSlur(slur);
 }
 
-QString ExportBrailleImpl::brailleHairpinBefore(ChordRest* chordRest, const std::vector<Hairpin*>& hairpins)
+QString LiveBrailleImpl::brailleHairpinBefore(ChordRest* chordRest, const std::vector<Hairpin*>& hairpins)
 {
     if (!chordRest) {
         return QString();
@@ -2400,7 +2400,7 @@ QString ExportBrailleImpl::brailleHairpinBefore(ChordRest* chordRest, const std:
     return result;
 }
 
-QString ExportBrailleImpl::brailleHairpinAfter(ChordRest* chordRest, const std::vector<Hairpin*>& hairpins)
+QString LiveBrailleImpl::brailleHairpinAfter(ChordRest* chordRest, const std::vector<Hairpin*>& hairpins)
 {
     if (!chordRest) {
         return QString();
@@ -2436,7 +2436,7 @@ QString ExportBrailleImpl::brailleHairpinAfter(ChordRest* chordRest, const std::
     return result;
 }
 
-QString ExportBrailleImpl::brailleFermata(Fermata* fermata)
+QString LiveBrailleImpl::brailleFermata(Fermata* fermata)
 {
     if (!fermata) {
         return QString();
@@ -2469,7 +2469,7 @@ QString ExportBrailleImpl::brailleFermata(Fermata* fermata)
     return QString();
 }
 
-QString ExportBrailleImpl::brailleMarker(Marker* marker)
+QString LiveBrailleImpl::brailleMarker(Marker* marker)
 {
     switch (marker->markerType()) {
     case MarkerType::SEGNO:
@@ -2490,7 +2490,7 @@ QString ExportBrailleImpl::brailleMarker(Marker* marker)
     return QString();
 }
 
-QString ExportBrailleImpl::brailleJump(Jump* jump)
+QString LiveBrailleImpl::brailleJump(Jump* jump)
 {
     switch (jump->jumpType()) {
     case JumpType::DC:
