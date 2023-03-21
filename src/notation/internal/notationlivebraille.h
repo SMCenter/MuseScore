@@ -39,6 +39,9 @@
 #include "context/iglobalcontext.h"
 #include "notation/inotationconfiguration.h"
 
+#include "internal/livebraille/livebraille.h"
+#include "internal/livebraille/brailleinput.h"
+
 namespace Ms {
 class Score;
 class Selection;
@@ -57,36 +60,65 @@ public:
 
     void doLiveBraille(bool force = false);
 
+    // Braille input
+    bool addNote();
+    bool addVoice();
+    bool addSlurStart();
+    bool addSlurEnd();
+    bool addTie();
+    bool addTuplet(const mu::notation::TupletOptions& options);
+
+    bool incDuration();
+    bool decDuration();
+
+    bool setArticulation();
+
+    void setInputNoteDuration(Duration d);
+
     ValCh<std::string> liveBrailleInfo() const override;
     ValCh<int> cursorPosition() const override;
     ValCh<int> currentItemPositionStart() const override;
     ValCh<int> currentItemPositionEnd() const override;
-    ValCh<std::string> shortcut() const override;
+    ValCh<std::string> keys() const override;
     ValCh<bool> enabled() const override;
+    ValCh<int> mode() const override;
+    ValCh<std::string> cursorColor() const override;
 
     void setEnabled(bool enabled) override;
 
     void setCursorPosition(const int pos) override;
     void setCurrentItemPosition(const int, const int) override;
-    void setShortcut(const QString&) override;
+    void setKeys(const QString&) override;
+
+    void setMode(const LiveBrailleMode) override;
+    bool isNavigationMode() override;
+    bool isBrailleInputMode() override;
+    bool isBrailleEditMode() override;
+
+    void setCursorColor(const QString color) override;
 
     INotationPtr notation();
     INotationInteractionPtr interaction();
 
-    livebraille::BrailleEngravingItems* brailleEngravingItems();
+    livebraille::BrailleEngravingItemList* brailleEngravingItemList();
     QString getBrailleStr();
 
 private:
-    engraving::Score* score();
+    engraving::Score* score();    
     engraving::Selection* selection();
 
-    Measure* current_measure = nullptr;
+    Notation* m_notation;
+    Measure* current_measure = NULL;
+    EngravingItem* current_engraving_item = NULL;
+    livebraille::BrailleEngravingItem* current_bei = NULL;
 
     void setLiveBrailleInfo(const QString& info);
-    void setCurrentShortcut(const QString& sequence);
+    void setCurrentEngravingItem(EngravingItem* el, bool select);
 
     void updateTableForLyricsFromPreferences();
     io::path_t tablesDefaultDirPath() const;
+
+    BrailleInputState m_braille_input;
 
     const IGetScore* m_getScore = nullptr;
 
@@ -94,12 +126,13 @@ private:
     ValCh<int> m_cursorPosition;
     ValCh<int> m_currentItemPositionStart;
     ValCh<int> m_currentItemPositionEnd;
-    ValCh<std::string> m_shortcut;
+    ValCh<std::string> m_keys;
     ValCh<bool> m_enabled;
+    ValCh<int> m_mode;
+    ValCh<std::string> m_cursorColor;
 
-    livebraille::BrailleEngravingItems m_bei;
+    livebraille::BrailleEngravingItemList m_beil;
     async::Notification m_selectionChanged;
 };
 }
-
 #endif // MU_NOTATION_NOTATIONLIVEBRAILLE_H

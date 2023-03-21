@@ -83,6 +83,7 @@
 #include "log.h"
 
 #include "louis.h"
+#include "braille.h"
 
 using namespace mu;
 using namespace mu::engraving;
@@ -333,211 +334,220 @@ namespace mu::notation::livebraille {
 #define BRAILLE_UP_BOW                  QString("<'")
 #define BRAILLE_LEFT_HAND_PIZZICATO     QString("_>")
 
-//[Support Braill functions]
-//#upper numbers
-std::string Braille_UpperNumbers[] = { "245", "1", "12", "14", "145",
-                                       "15", "124", "1245", "125", "24" };
-//#lower numbers
-std::string Braille_LowerNumbers[] = { "356", "2", "23", "25", "256",
-                                       "26", "235", "2356", "236", "35" };
-//# Lyrics indicator
-std::string Braille_LyricLineIndicator = "56-23";
-//# Numbers indicator
-std::string Braille_NumIndicator = "3456";
-
-std::string getBraillePattern(std::string dots)
+BrailleEngravingItem::BrailleEngravingItem(BEIType type,
+                                           mu::engraving::EngravingItem* el,
+                                           QString braille)
 {
-    const char* dotc = dots.c_str();
-    int d = atoi(dotc);
-    switch (d) {
-    case 0: return " ";
-    case 1: return "⠁";
-    case 2: return "⠂";
-    case 12: return "⠃";
-    case 3: return "⠄";
-    case 13: return "⠅";
-    case 23: return "⠆";
-    case 123: return "⠇";
-    case 4: return "⠈";
-    case 14: return "⠉";
-    case 24: return "⠊";
-    case 124: return "⠋";
-    case 34: return "⠌";
-    case 134: return "⠍";
-    case 234: return "⠎";
-    case 1234: return "⠏";
-
-    case 5: return "⠐";
-    case 15: return "⠑";
-    case 25: return "⠒";
-    case 125: return "⠓";
-    case 35: return "⠔";
-    case 135: return "⠕";
-    case 235: return "⠖";
-    case 1235: return "⠗";
-    case 45: return "⠘";
-    case 145: return "⠙";
-    case 245: return "⠚";
-    case 1245: return "⠛";
-    case 345: return "⠜";
-    case 1345: return "⠝";
-    case 2345: return "⠞";
-    case 12345: return "⠟";
-
-    case 6: return "⠠";
-    case 16: return "⠡";
-    case 26: return "⠢";
-    case 126: return "⠣";
-    case 36: return "⠤";
-    case 136: return "⠥";
-    case 236: return "⠦";
-    case 1236: return "⠧";
-    case 46: return "⠨";
-    case 146: return "⠩";
-    case 246: return "⠪";
-    case 1246: return "⠫";
-    case 346: return "⠬";
-    case 1346: return "⠭";
-    case 2346: return "⠮";
-    case 12346: return "⠯";
-
-    case 56: return "⠰";
-    case 156: return "⠱";
-    case 256: return "⠲";
-    case 1256: return "⠳";
-    case 356: return "⠴";
-    case 1356: return "⠵";
-    case 2356: return "⠶";
-    case 12356: return "⠷";
-    case 456: return "⠸";
-    case 1456: return "⠹";
-    case 2456: return "⠺";
-    case 12456: return "⠻";
-    case 3456: return "⠼";
-    case 13456: return "⠽";
-    case 23456: return "⠾";
-    case 123456: return "⠿";
+    m_type = type;
+    m_el = el;
+    m_braille = braille;
+    if(type == BEIType::EndOfLine) {
+        m_start = -1;
+        m_end = -1;
+    } else {
+        m_start = 0;
+        m_end = braille.length();
     }
-    return " ";
+}
+BrailleEngravingItem::BrailleEngravingItem(BEIType type,
+                                           mu::engraving::EngravingItem* e, QString b,
+                                           QString extra_info, int extra_val) :
+    BrailleEngravingItem(type, e, b)
+{
+    m_extra_info = extra_info;
+    m_extra_val = extra_val;
 }
 
-std::string translate2Braille(std::string codes)
+BrailleEngravingItem::~BrailleEngravingItem()
 {
-    std::stringstream test(codes);
-    std::string segment;
-    std::vector<std::string> seglist;
-
-    std::string txt = "";
-    while (std::getline(test, segment, '-')) {
-        txt.append(getBraillePattern(segment));
-    }
-    return txt;
+    m_braille = QString();
+    m_extra_info = QString();
 }
 
-std::string intToBrailleUpperNumbers(std::string txt, bool indicator)
+BEIType BrailleEngravingItem::type()
 {
-    std::string braille = "";
-    if (indicator) {
-        braille.append(translate2Braille(Braille_NumIndicator));
-    }
-
-    for (size_t i=0; i < txt.length(); i++) {
-        char c = txt.at(i);
-        if (c - '0' <= 9) {
-            braille.append(translate2Braille(Braille_UpperNumbers[c - '0']));
-        }
-    }
-    return braille;
+    return m_type;
 }
 
-std::string intToBrailleLowerNumbers(std::string txt, bool indicator)
+mu::engraving::EngravingItem* BrailleEngravingItem::el()
 {
-    std::string braille = "";
-    if (indicator) {
-        braille.append(Braille_NumIndicator);
-    }
-
-    for (size_t i=0; i < txt.length(); i++) {
-        char c = txt.at(i);
-        if (c - '0' <= 9) {
-            braille.append(Braille_LowerNumbers[c - '0']);
-        }
-    }
-    return braille;
+    return m_el;
 }
 
-BrailleEngravingItems::BrailleEngravingItems()
+QString BrailleEngravingItem::braille()
 {
-    braille_str = QString();
+    return m_braille;
 }
 
-BrailleEngravingItems::~BrailleEngravingItems()
+int BrailleEngravingItem::start()
+{
+    return m_start;
+}
+
+int BrailleEngravingItem::end()
+{
+    return m_end;
+}
+
+QString BrailleEngravingItem::extra_info()
+{
+    return m_extra_info;
+}
+
+int BrailleEngravingItem::extra_val()
+{
+    return m_extra_val;
+}
+
+void BrailleEngravingItem::setBraille(QString b)
+{
+    m_braille = b;
+}
+
+void BrailleEngravingItem::setPos(int start, int end)
+{
+    m_start = start;
+    m_end = end;
+}
+
+void BrailleEngravingItem::setExtra(QString info, int val)
+{
+    m_extra_info = info;
+    m_extra_val = val;
+}
+
+BrailleEngravingItemList::BrailleEngravingItemList()
+{
+    m_braille_str = QString();
+}
+
+BrailleEngravingItemList::~BrailleEngravingItemList()
 {
     clear();
 }
 
-void BrailleEngravingItems::clear()
+void BrailleEngravingItemList::clear()
 {
-    braille_str = QString();
-    _items.clear();
+    m_braille_str = QString();
+    m_items.clear();
 }
 
-void BrailleEngravingItems::join(BrailleEngravingItems* another, bool newline, bool del)
+void BrailleEngravingItemList::join(BrailleEngravingItemList* another, bool newline, bool del)
 {
-    int len = braille_str.length();
+    int len = m_braille_str.length();
 
-    if (newline && !braille_str.isEmpty()) {
-        braille_str.append("\n");
+    if (newline && !m_braille_str.isEmpty()) {        
+        BrailleEngravingItem item = BrailleEngravingItem(BEIType::EndOfLine, NULL, "\n");
+        m_items.push_back(item);
+        m_braille_str.append("\n");
         len++;
     }
 
-    braille_str.append(another->brailleStr());
+    m_braille_str.append(another->brailleStr());    
 
     for (auto item: *another->items()) {
-        item.second.first += len;
-        item.second.second += len;
-        _items.push_back(item);
+        int start = item.start() + len;
+        int end = item.end() + len;
+        item.setPos(start, end);
+        m_items.push_back(item);
     }
+
     if (del) {
         delete another;
     }
 }
 
-void BrailleEngravingItems::join(std::vector<BrailleEngravingItems*> lst, bool newline, bool del)
+void BrailleEngravingItemList::join(std::vector<BrailleEngravingItemList*> lst, bool newline, bool del)
 {
     for (auto item: lst) {
         join(item, newline, del);
     }
 }
 
-QString BrailleEngravingItems::brailleStr()
+QString BrailleEngravingItemList::brailleStr()
 {
-    return braille_str;
+    return m_braille_str;
 }
 
-std::vector<std::pair<mu::engraving::EngravingItem*, std::pair<int, int> > >* BrailleEngravingItems::items()
+std::vector<BrailleEngravingItem>* BrailleEngravingItemList::items()
 {
-    return &_items;
+    return &m_items;
 }
 
-void BrailleEngravingItems::setBrailleStr(QString str)
+void BrailleEngravingItemList::setBrailleStr(QString str)
 {
-    braille_str = str;
-    _items.clear();
+    m_braille_str = str;
+    m_items.clear();
 }
 
-void BrailleEngravingItems::addPrefixStr(QString str)
+void BrailleEngravingItemList::insert(int pos, BrailleEngravingItem bei)
 {
-    int len = str.length();
-    braille_str = str.append(braille_str);
+    if(bei.braille().isEmpty()) {
+        return;
+    }
 
-    for (size_t i=0; i < _items.size(); i++) {
-        _items[i].second.first += len;
-        _items[i].second.second += len;
+    if(pos == 0) { // insert front
+        QString buff = bei.braille();
+        int len = bei.braille().length();        
+
+        for (size_t i=0; i < m_items.size(); i++) {
+            int start = m_items[i].start() + len;
+            int end = m_items[i].end() + len;
+            m_items[i].setPos(start, end);
+        }
+
+        bei.setPos(0, len);
+        m_items.insert(m_items.begin(), bei);
+        m_braille_str = buff.append(m_braille_str);
+    } else if(pos >= m_braille_str.length()) { // insert back
+        int len = bei.braille().length();        
+
+        int start = m_braille_str.length();
+        int end = start + len - 1;
+        bei.setPos(start, end);
+        m_items.push_back(bei);
+
+        m_braille_str.append(bei.braille());
+    } else { // insert middle
+        std::vector<BrailleEngravingItem> lst;
+        QString buff = "";
+
+        std::vector<BrailleEngravingItem>::iterator ptr;
+        int inc = 0;
+        for (ptr = m_items.begin(); ptr < m_items.end(); ptr++) {
+            if(ptr->start() >= pos) {
+                if(inc == 0) {
+                    if(bei.type() != BEIType::EndOfLine) {
+                        inc = bei.braille().length();
+                        int start = buff.length();
+                        int end = start + inc - 1;
+                        bei.setPos(start, end);
+                    }
+                    lst.push_back(bei);
+                }
+                if(ptr->type() != BEIType::EndOfLine) {
+                    int start = ptr->start() + inc;
+                    int end = ptr->end() + inc;
+                    ptr->setPos(start, end);
+                }
+                lst.push_back(*ptr);
+            } else {
+                lst.push_back(*ptr);
+            }
+            buff.append(bei.braille());
+        }
+
+        m_braille_str = buff;
+        m_items = lst;
     }
 }
 
-void BrailleEngravingItems::addEngravingItem(mu::engraving::EngravingItem* el, QString braille)
+bool BrailleEngravingItemList::isEmpty()
+{
+    return m_braille_str.isEmpty();
+}
+
+void BrailleEngravingItemList::addEngravingItem(mu::engraving::EngravingItem* el, QString braille)
 {
     //braille = braille.replace(QRegularExpression ("/\\/"), "\\\\");
     //Manual doubling slashes '\' because Regex doesn't work. Don't know why.
@@ -550,69 +560,66 @@ void BrailleEngravingItems::addEngravingItem(mu::engraving::EngravingItem* el, Q
     }
     QString unitxt = QString::fromStdString(braille_long_translate(table_ascii_to_unicode.c_str(), txt.toStdString()));
 
-    int start = braille_str.length();
-    int end = start + unitxt.length();
-    _items.push_back({ el, { start, end } });
-
-    braille_str.append(unitxt);
+    BrailleEngravingItem bei = BrailleEngravingItem(BEIType::EngravingItem, el, unitxt);
+    bei.setExtra(el->typeName(), -1);
+    insert(MAX_LIVE_BRAILLE_LENGTH, bei);
 }
 
-void BrailleEngravingItems::addLyricsItem(mu::engraving::Lyrics* l)
+void BrailleEngravingItemList::addLyricsItem(mu::engraving::Lyrics* l)
 {
     std::string txt = l->plainText().toStdString();
     QString unitxt = QString::fromStdString(braille_long_translate(table_for_literature.c_str(), txt));
 
     switch (l->syllabic()) {
-    case Lyrics::Syllabic::SINGLE: case Lyrics::Syllabic::BEGIN:
-        if (!braille_str.isEmpty()) {
-            braille_str.append(" ");
+        case Lyrics::Syllabic::SINGLE: case Lyrics::Syllabic::BEGIN:
+        {
+            if (!m_braille_str.isEmpty()) {
+                m_braille_str.append(" ");
+            }
         }
-    case Lyrics::Syllabic::END: case Lyrics::Syllabic::MIDDLE:
-        int start = braille_str.length();
-        int end = start + unitxt.length();
-        _items.push_back({ l, { start, end } });
-        braille_str.append(unitxt);
-        break;
+        case Lyrics::Syllabic::END: case Lyrics::Syllabic::MIDDLE:
+        {            
+            BrailleEngravingItem bei = BrailleEngravingItem(BEIType::LyricItem, l, unitxt, QString::fromStdString(txt), -1);
+            insert(MAX_LIVE_BRAILLE_LENGTH, bei);
+            break;
+        }
     }
 }
 
-mu::engraving::EngravingItem* BrailleEngravingItems::getEngravingItem(int pos)
+BrailleEngravingItem* BrailleEngravingItemList::getItem(int pos)
 {
-    for (size_t i=0; i < _items.size(); i++) {
-        if (_items[i].second.first <= pos && _items[i].second.second >= pos) {
-            return _items[i].first;
+    for (size_t i=0; i < m_items.size(); i++) {
+        if (m_items[i].start() <= pos && m_items[i].end() >= pos) {
+            return &m_items[i];
         }
     }
-    return nullptr;
+    return NULL;
 }
 
-std::pair<int, int> BrailleEngravingItems::getBraillePos(engraving::EngravingItem* e)
-{
-    //LOGD() << "getBraillePos " << e << " " << e->accessibleInfo();
-    for (size_t i=0; i < _items.size(); i++) {
-        if (!_items[i].first) {
+BrailleEngravingItem* BrailleEngravingItemList::getItem(engraving::EngravingItem* e)
+{    
+    for (size_t i=0; i < m_items.size(); i++) {
+        if (!m_items[i].el()) {
             continue;
         }
-        //LOGD() << " -" << _items[i].first << " " << _items[i].first->accessibleInfo() << " {" << _items[i].second.first << "," << _items[i].second.second << "}";
-        if (_items[i].first == e) {
-            return _items[i].second;
+        if (m_items[i].el() == e) {
+            return &m_items[i];
         }
-        if (_items[i].first->elementBase() == e->elementBase()) {
-            return _items[i].second;
+        if (m_items[i].el()->elementBase() == e->elementBase()) {
+            return &m_items[i];
         }
-    }
-    //LOGD() << "getBraillePos " << e->accessibleInfo() << " NOT FOUND";
-    return { -1, -1 };
+    }    
+    return NULL;
 }
 
-void BrailleEngravingItems::log()
+void BrailleEngravingItemList::log()
 {
     LOGD() << brailleStr();
-    for (size_t i=0; i < _items.size(); i++) {
-        if (!_items[i].first) {
-            LOGD() << " - null {" << _items[i].second.first << "," << _items[i].second.second << "}";
+    for (size_t i=0; i < m_items.size(); i++) {
+        if (!m_items[i].el()) {
+            LOGD() << " - null {" << m_items[i].start() << "," << m_items[i].end() << "}";
         } else {
-            LOGD() << " -" << _items[i].first->accessibleInfo() << " {" << _items[i].second.first << "," << _items[i].second.second << "}";
+            LOGD() << " -" << m_items[i].el()->accessibleInfo() << " {" << m_items[i].start() << "," << m_items[i].end() << "}";
         }
     }
 }
@@ -791,10 +798,10 @@ class LiveBrailleImpl
 
     QString brailleMeasure(Measure* measure, int staffCount);
 
-    void brailleMeasure(BrailleEngravingItems* res, Measure* measure, int staffCount);
-    bool brailleSingleItem(BrailleEngravingItems* beiz, EngravingItem* el);
-    void brailleMeasureItems(BrailleEngravingItems* res, Measure* measure, int staffCount);
-    void brailleMeasureLyrics(BrailleEngravingItems* res, Measure* measure, int staffCount);
+    void brailleMeasure(BrailleEngravingItemList* res, Measure* measure, int staffCount);
+    bool brailleSingleItem(BrailleEngravingItemList* beiz, mu::engraving::EngravingItem* el);
+    void brailleMeasureItems(BrailleEngravingItemList* res, Measure* measure, int staffCount);
+    void brailleMeasureLyrics(BrailleEngravingItemList* res, Measure* measure, int staffCount);
 
     QString brailleClef(Clef* clef);
     QString brailleTimeSig(TimeSig* timeSig);
@@ -845,8 +852,8 @@ public:
 
     bool write(QIODevice& device);
     bool writeMeasure(QIODevice& destinationDevice, mu::engraving::Measure* m);
-    bool writeMeasure(BrailleEngravingItems* bei, mu::engraving::Measure* m);
-    bool writeItem(BrailleEngravingItems* bei, mu::engraving::EngravingItem* el);
+    bool writeMeasure(BrailleEngravingItemList* bei, mu::engraving::Measure* m);
+    bool writeItem(BrailleEngravingItemList* bei, mu::engraving::EngravingItem* el);
 };
 
 LiveBraille::LiveBraille(Score* score)
@@ -869,12 +876,12 @@ bool LiveBraille::writeMeasure(QIODevice& device, mu::engraving::Measure * m) {
     return m_impl->writeMeasure(device, m);
 }
 */
-bool LiveBraille::writeMeasure(BrailleEngravingItems* bei, mu::engraving::Measure* m)
+bool LiveBraille::writeMeasure(BrailleEngravingItemList* bei, mu::engraving::Measure* m)
 {
     return m_impl->writeMeasure(bei, m);
 }
 
-bool LiveBraille::writeItem(BrailleEngravingItems* bei, mu::engraving::EngravingItem* el)
+bool LiveBraille::writeItem(BrailleEngravingItemList* bei, mu::engraving::EngravingItem* el)
 {
     return m_impl->writeItem(bei, el);
 }
@@ -899,7 +906,7 @@ void LiveBrailleImpl::credits(QIODevice& device)
         for (const auto system : page->systems()) {
             for (const auto mb : system->measures()) {
                 if (mb->isVBox()) {
-                    for (const EngravingItem* element : mb->el()) {
+                    for (const mu::engraving::EngravingItem* element : mb->el()) {
                         if (element->isText()) {
                             const Text* text = toText(element);
                             out << TextToUEBBraille().braille(text->plainText()).toUtf8() << Qt::endl;
@@ -1165,55 +1172,28 @@ bool LiveBrailleImpl::writeMeasure(QIODevice& device, Measure * measure)
 }
 */
 
-bool LiveBrailleImpl::writeItem(BrailleEngravingItems* bei, mu::engraving::EngravingItem* el)
+bool LiveBrailleImpl::writeItem(BrailleEngravingItemList* bei, mu::engraving::EngravingItem* el)
 {
     return brailleSingleItem(bei, el);
 }
 
-bool LiveBrailleImpl::writeMeasure(BrailleEngravingItems* beiz, Measure* measure)
+bool LiveBrailleImpl::writeMeasure(BrailleEngravingItemList* beiz, Measure* measure)
 {
     size_t nrStaves = score->staves().size();
 
-    std::vector<BrailleEngravingItems> measureBraille(nrStaves);
-    std::vector<BrailleEngravingItems> lyrics(nrStaves + 1);
+    std::vector<BrailleEngravingItemList> measureBraille(nrStaves);
+    std::vector<BrailleEngravingItemList> lyrics(nrStaves + 1);
 
-    /*
-    for (MeasureBase* mb = score->measures()->first(); mb != nullptr; mb = mb->next()) {
-        if (!mb->isMeasure() || mb != measure ) {
-            continue;
-        }
-
-        Measure* m = toMeasure(mb);
-
-        if (m->hasMMRest() && score->styleB(Sid::createMultiMeasureRests)) {
-            mb = m = m->mmRest();
-        }
-
-        for (size_t i = 0; i < nrStaves; ++i) {
-            BrailleEngravingItems measureBraille;
-            BrailleEngravingItems measureLyrics;
-
-            brailleMeasureItems(&measureBraille, m, static_cast<int>(i));
-            measureBraille.log();
-            beiz->join(&measureBraille, true, false);
-
-            brailleMeasureLyrics(&measureLyrics, m, static_cast<int>(i));
-            if(!measureLyrics.isEmpty()) {
-                beiz->join(&measureLyrics, true, false);
-            }
-        }
-    }
-    */
     if (measure->hasMMRest() && score->styleB(Sid::createMultiMeasureRests)) {
         measure = measure->mmRest();
     }
 
     for (size_t i = 0; i < nrStaves; ++i) {
-        BrailleEngravingItems measureBraille;
-        BrailleEngravingItems measureLyrics;
+        BrailleEngravingItemList measureBraille;
+        BrailleEngravingItemList measureLyrics;
 
         brailleMeasureItems(&measureBraille, measure, static_cast<int>(i));
-        measureBraille.log();
+        //measureBraille.log();
         beiz->join(&measureBraille, true, false);
 
         brailleMeasureLyrics(&measureLyrics, measure, static_cast<int>(i));
@@ -1458,7 +1438,7 @@ QString LiveBrailleImpl::brailleRest(Rest* rest)
     }
 
     QString fermata = QString();
-    for (EngravingItem* el : rest->segment()->annotations()) {
+    for (mu::engraving::EngravingItem* el : rest->segment()->annotations()) {
         if (el->isFermata()) {
             fermata = brailleFermata(toFermata(el));
         }
@@ -1510,7 +1490,7 @@ QString LiveBrailleImpl::brailleBreath(Breath* breath)
 BarLine* LiveBrailleImpl::lastBarline(Measure* measure, track_idx_t track)
 {
     for (Segment* seg = measure->last(); seg; seg = seg->prev()) {
-        EngravingItem* el = seg->element(track);
+        mu::engraving::EngravingItem* el = seg->element(track);
         if (el && el->isBarLine()) {
             return toBarLine(el);
         }
@@ -1521,7 +1501,7 @@ BarLine* LiveBrailleImpl::lastBarline(Measure* measure, track_idx_t track)
 BarLine* LiveBrailleImpl::firstBarline(Measure* measure, track_idx_t track)
 {
     for (Segment* seg = measure->first(); seg; seg = seg->next()) {
-        EngravingItem* el = seg->element(track);
+        mu::engraving::EngravingItem* el = seg->element(track);
         if (el && el->isChordRest()) {
             return nullptr;
         }
@@ -1538,7 +1518,7 @@ QString LiveBrailleImpl::brailleMeasure(Measure* measure, int staffCount)
     QTextStream out(&rez);
     //LOGD("LiveBrailleImpl::brailleMeasure %d", staffCount);
     //Render all repeats and jumps that are on the left
-    for (EngravingItem* el : measure->el()) {
+    for (mu::engraving::EngravingItem* el : measure->el()) {
         if (el->isMarker()) {
             Marker* marker = toMarker(el);
             if (marker->textStyleType() == TextStyleType::REPEAT_LEFT) {
@@ -1563,7 +1543,7 @@ QString LiveBrailleImpl::brailleMeasure(Measure* measure, int staffCount)
 
     //Render everything that is in Voice 1
     for (auto seg = measure->first(); seg; seg = seg->next()) {
-        for (EngravingItem* annotation : seg->annotations()) {
+        for (mu::engraving::EngravingItem* annotation : seg->annotations()) {
             if (annotation->isTempoText()) {
                 out << brailleTempoText(toTempoText(annotation), staffCount);
             }
@@ -1574,7 +1554,7 @@ QString LiveBrailleImpl::brailleMeasure(Measure* measure, int staffCount)
             }
         }
 
-        EngravingItem* el = seg->element(staffCount * VOICES);
+        mu::engraving::EngravingItem* el = seg->element(staffCount * VOICES);
         if (!el) {
             continue;
         }
@@ -1622,7 +1602,7 @@ QString LiveBrailleImpl::brailleMeasure(Measure* measure, int staffCount)
             resetOctave(staffCount);
             out << BRAILLE_FULL_MEASURE_IN_ACORD;
             for (auto seg = measure->first(); seg; seg = seg->next()) {
-                EngravingItem* el = seg->element(staffCount * VOICES + i);
+                mu::engraving::EngravingItem* el = seg->element(staffCount * VOICES + i);
                 if (!el) {
                     continue;
                 }
@@ -1651,7 +1631,7 @@ QString LiveBrailleImpl::brailleMeasure(Measure* measure, int staffCount)
     out << brailleBarline(bl);
 
     //Render repeats and jumps that are on the right
-    for (EngravingItem* el : measure->el()) {
+    for (mu::engraving::EngravingItem* el : measure->el()) {
         if (el->isMarker()) {
             Marker* marker = toMarker(el);
             if (marker->textStyleType() == TextStyleType::REPEAT_RIGHT) {
@@ -1670,9 +1650,9 @@ QString LiveBrailleImpl::brailleMeasure(Measure* measure, int staffCount)
     return rez;
 }
 
-void LiveBrailleImpl::brailleMeasureLyrics(BrailleEngravingItems* beiz, Measure* measure, int staffCount)
+void LiveBrailleImpl::brailleMeasureLyrics(BrailleEngravingItemList* beiz, Measure* measure, int staffCount)
 {
-    BrailleEngravingItems lyrics[MAX_LYRICS_NUM];
+    BrailleEngravingItemList lyrics[MAX_LYRICS_NUM];
 
     for (auto seg = measure->first(); seg; seg = seg->next()) {
         if (!seg->isChordRestType()) {
@@ -1695,13 +1675,15 @@ void LiveBrailleImpl::brailleMeasureLyrics(BrailleEngravingItems* beiz, Measure*
         if (lyrics[i].isEmpty()) {
             lyrics[i].clear();
         } else {
-            lyrics[i].addPrefixStr(QString::fromStdString(translate2Braille(Braille_LyricLineIndicator)));
+            QString braille = QString::fromStdString(translate2Braille(Braille_LyricLineIndicator.code));
+            BrailleEngravingItem bei = BrailleEngravingItem(BEIType::LineIndicator, NULL, braille);
+            lyrics[i].insert(0, bei);
             beiz->join(&lyrics[i], true, false);
         }
     }
 }
 
-bool LiveBrailleImpl::brailleSingleItem(BrailleEngravingItems* beiz, EngravingItem* el)
+bool LiveBrailleImpl::brailleSingleItem(BrailleEngravingItemList* beiz, mu::engraving::EngravingItem* el)
 {
     resetOctaves();
 
@@ -1755,12 +1737,12 @@ bool LiveBrailleImpl::brailleSingleItem(BrailleEngravingItems* beiz, EngravingIt
     return false;
 }
 
-void LiveBrailleImpl::brailleMeasureItems(BrailleEngravingItems* beiz, Measure* measure, int staffCount)
+void LiveBrailleImpl::brailleMeasureItems(BrailleEngravingItemList* beiz, Measure* measure, int staffCount)
 {
     //QTextStream out(&rez);
     //LOGD("LiveBrailleImpl::brailleMeasure %d", staffCount);
     //Render all repeats and jumps that are on the left
-    for (EngravingItem* el : measure->el()) {
+    for (mu::engraving::EngravingItem* el : measure->el()) {
         if (el->isMarker()) {
             Marker* marker = toMarker(el);
             if (marker->textStyleType() == TextStyleType::REPEAT_LEFT) {
@@ -1785,7 +1767,7 @@ void LiveBrailleImpl::brailleMeasureItems(BrailleEngravingItems* beiz, Measure* 
 
     //Render everything that is in Voice 1
     for (auto seg = measure->first(); seg; seg = seg->next()) {
-        for (EngravingItem* annotation : seg->annotations()) {
+        for (mu::engraving::EngravingItem* annotation : seg->annotations()) {
             if (annotation->isTempoText()) {
                 beiz->addEngravingItem(annotation, brailleTempoText(toTempoText(annotation), staffCount));
             }
@@ -1796,7 +1778,7 @@ void LiveBrailleImpl::brailleMeasureItems(BrailleEngravingItems* beiz, Measure* 
             }
         }
 
-        EngravingItem* el = seg->element(staffCount * VOICES);
+        mu::engraving::EngravingItem* el = seg->element(staffCount * VOICES);
         if (!el) {
             continue;
         }
@@ -1842,9 +1824,13 @@ void LiveBrailleImpl::brailleMeasureItems(BrailleEngravingItems* beiz, Measure* 
             score->endCmd();
 */
             resetOctave(staffCount);
-            beiz->addEngravingItem(nullptr, BRAILLE_FULL_MEASURE_IN_ACORD);
+
+            QString in_accord = QString::fromStdString(translate2Braille(Braille_FullMeasureAccord.code));
+            BrailleEngravingItem bei = BrailleEngravingItem(BEIType::VoiceInAccord, NULL, in_accord);
+            beiz->insert(MAX_LIVE_BRAILLE_LENGTH, bei);
+
             for (auto seg = measure->first(); seg; seg = seg->next()) {
-                EngravingItem* el = seg->element(staffCount * VOICES + i);
+                mu::engraving::EngravingItem* el = seg->element(staffCount * VOICES + i);
                 if (!el) {
                     continue;
                 }
@@ -1873,7 +1859,7 @@ void LiveBrailleImpl::brailleMeasureItems(BrailleEngravingItems* beiz, Measure* 
     beiz->addEngravingItem(bl, brailleBarline(bl));
 
     //Render repeats and jumps that are on the right
-    for (EngravingItem* el : measure->el()) {
+    for (mu::engraving::EngravingItem* el : measure->el()) {
         if (el->isMarker()) {
             Marker* marker = toMarker(el);
             if (marker->textStyleType() == TextStyleType::REPEAT_RIGHT) {
@@ -2104,7 +2090,7 @@ QString LiveBrailleImpl::brailleChordRootNote(Chord* chord, Note* rootNote)
     QString noteTieBraille = brailleTie(rootNote);
 
     QString fingeringAfterBraille = QString();
-    for (EngravingItem* el : rootNote->el()) {
+    for (mu::engraving::EngravingItem* el : rootNote->el()) {
         if (el->isFingering()) {
             fingeringAfterBraille += brailleFingeringAfter(toFingering(el));
         }
@@ -2215,7 +2201,7 @@ QString LiveBrailleImpl::brailleChordInterval(Note* rootNote, const std::vector<
     QString noteTieBraille = brailleTie(note);
 
     QString fingeringAfterBraille = QString();
-    for (EngravingItem* el : rootNote->el()) {
+    for (mu::engraving::EngravingItem* el : rootNote->el()) {
         if (el->isFingering()) {
             fingeringAfterBraille += brailleFingeringAfter(toFingering(el));
         }
@@ -2278,7 +2264,7 @@ QString LiveBrailleImpl::brailleChord(Chord* chord)
     QString chordTieBraille = brailleTie(chord);
 
     QString fermata = QString();
-    for (EngravingItem* el : chord->segment()->annotations()) {
+    for (mu::engraving::EngravingItem* el : chord->segment()->annotations()) {
         if (el->isFermata()) {
             fermata = brailleFermata(toFermata(el));
         }
@@ -2408,7 +2394,7 @@ QString LiveBrailleImpl::brailleBarline(BarLine* barline)
     }
 
     QString fermataBraille = QString();
-    for (EngravingItem* el : barline->segment()->annotations()) {
+    for (mu::engraving::EngravingItem* el : barline->segment()->annotations()) {
         if (el->isFermata()) {
             fermataBraille = brailleFermata(toFermata(el));
         }

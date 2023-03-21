@@ -46,8 +46,10 @@ class LiveBrailleModel : public QObject, public async::Asyncable, public actions
     Q_PROPERTY(int cursorPosition READ cursorPosition WRITE setCursorPosition NOTIFY cursorPositionChanged)
     Q_PROPERTY(int currentItemPositionStart READ currentItemPositionStart NOTIFY currentItemChanged)
     Q_PROPERTY(int currentItemPositionEnd READ currentItemPositionEnd NOTIFY currentItemChanged)
-    Q_PROPERTY(QString shorcut READ shortcut WRITE setShortcut NOTIFY shortcutFired)
+    Q_PROPERTY(QString keys READ keys WRITE setKeys)
     Q_PROPERTY(bool enabled READ enabled WRITE setEnabled NOTIFY liveBrailleStatusChanged)
+    Q_PROPERTY(int mode READ mode WRITE setMode NOTIFY liveBrailleModeChanged)
+    Q_PROPERTY(QString cursorColor READ cursorColor NOTIFY liveBrailleModeChanged)
 
 public:
     explicit LiveBrailleModel(QObject* parent = nullptr);
@@ -62,18 +64,28 @@ public:
     int currentItemPositionStart() const;
     int currentItemPositionEnd() const;
 
-    QString shortcut() const;
-    void setShortcut(const QString& sequence) const;
+    QString keys() const;
+    void setKeys(const QString & sequence) const;
 
     bool enabled() const;
     void setEnabled(bool e) const;
+
+    int mode() const;
+    void setMode(int mode) const;
+    bool isNavigationMode();
+    bool isBrailleInputMode();
+    bool isBrailleEditMode();
+
+    QString cursorColor() const;
 
 signals:
     void liveBrailleInfoChanged() const;
     void cursorPositionChanged() const;
     void currentItemChanged() const;
-    void shortcutFired() const;
+    void keysFired() const;
     void liveBrailleStatusChanged() const;
+    void liveBrailleModeChanged() const;
+    void liveCursorColorChanged() const;
 
 private:
     notation::INotationPtr notation() const;
@@ -84,8 +96,9 @@ private:
     void listenChangesInLiveBraille();
     void listenCursorPositionChanges();
     void listenCurrentItemChanges();
-    void listenShortcuts();
+    void listenKeys();
     void listenLiveBrailleStatusChanges();
+    void listenLiveBrailleModeChanges();
 };
 }
 

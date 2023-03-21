@@ -29,6 +29,9 @@ using namespace mu::notation;
 LiveBrailleModel::LiveBrailleModel(QObject* parent)
     : QObject(parent)
 {
+    if(!livebraille()) {
+        livebraille()->setMode(LiveBrailleMode::Navigation);
+    }
     load();
 }
 
@@ -37,9 +40,9 @@ QString LiveBrailleModel::liveBrailleInfo() const
     return livebraille() ? QString::fromStdString(livebraille()->liveBrailleInfo().val) : QString();
 }
 
-QString LiveBrailleModel::shortcut() const
+QString LiveBrailleModel::keys() const
 {
-    return livebraille() ? QString::fromStdString(livebraille()->shortcut().val) : QString();
+    return livebraille() ? QString::fromStdString(livebraille()->keys().val) : QString();
 }
 
 int LiveBrailleModel::cursorPosition() const
@@ -59,23 +62,18 @@ int LiveBrailleModel::currentItemPositionEnd() const
 
 void LiveBrailleModel::setCursorPosition(int pos) const
 {
-    if (!livebraille()) {
-        return;
-    }
+    if(!livebraille()) return;
 
-    if (livebraille()->cursorPosition().val == pos) {
+    if (livebraille()->cursorPosition().val == pos)
         return;
-    }
 
     livebraille()->setCursorPosition(pos);
 }
 
-void LiveBrailleModel::setShortcut(const QString& sequence) const
+void LiveBrailleModel::setKeys(const QString & sequence) const
 {
-    if (!livebraille()) {
-        return;
-    }
-    livebraille()->setShortcut(sequence);
+    if(!livebraille()) return;
+    livebraille()->setKeys(sequence);
 }
 
 bool LiveBrailleModel::enabled() const
@@ -97,6 +95,57 @@ void LiveBrailleModel::setEnabled(bool e) const
     emit liveBrailleStatusChanged();
 }
 
+int LiveBrailleModel::mode() const
+{
+    return livebraille()->mode().val;
+}
+
+void LiveBrailleModel::setMode(int m) const
+{
+    if(!livebraille()) {
+        return;
+    }
+
+    if(livebraille()->mode().val == m) {
+        return;
+    }
+
+    livebraille()->setMode((LiveBrailleMode)m);
+
+    emit liveBrailleModeChanged();
+}
+
+bool LiveBrailleModel::isNavigationMode()
+{
+    if(!livebraille()) {
+        return false;
+    }
+    return livebraille()->isNavigationMode();
+}
+
+bool LiveBrailleModel::isBrailleInputMode()
+{
+    if(!livebraille()) {
+        return false;
+    }
+    return livebraille()->isBrailleInputMode();
+}
+
+bool LiveBrailleModel::isBrailleEditMode()
+{
+    if(!livebraille()) {
+        return false;
+    }
+    return livebraille()->isBrailleEditMode();
+}
+
+QString LiveBrailleModel::cursorColor() const
+{
+    QString color = livebraille() ? QString::fromStdString(livebraille()->cursorColor().val) : QString();
+    LOGD() << color;
+    return color;
+}
+
 void LiveBrailleModel::load()
 {
     TRACEFUNC;
@@ -115,8 +164,9 @@ void LiveBrailleModel::onCurrentNotationChanged()
 
     listenChangesInLiveBraille();
     listenCurrentItemChanges();
-    listenShortcuts();
+    listenKeys();
     listenLiveBrailleStatusChanges();
+    listenLiveBrailleModeChanges();
     listenCursorPositionChanges();
 }
 
@@ -131,14 +181,14 @@ void LiveBrailleModel::listenChangesInLiveBraille()
     });
 }
 
-void LiveBrailleModel::listenShortcuts()
+void LiveBrailleModel::listenKeys()
 {
     if (!livebraille()) {
         return;
     }
 
-    livebraille()->shortcut().ch.onReceive(this, [this](const std::string&) {
-        emit shortcutFired();
+    livebraille()->keys().ch.onReceive(this, [this](const std::string&) {
+        emit keysFired();
     });
 }
 
@@ -173,6 +223,16 @@ void LiveBrailleModel::listenLiveBrailleStatusChanges()
     }
     livebraille()->enabled().ch.onReceive(this, [this](const int) {
         emit liveBrailleStatusChanged();
+    });
+}
+
+void LiveBrailleModel::listenLiveBrailleModeChanges()
+{
+    if (!livebraille()) {
+        return;
+    }
+    livebraille()->mode().ch.onReceive(this, [this](const int) {
+        emit liveBrailleModeChanged();
     });
 }
 

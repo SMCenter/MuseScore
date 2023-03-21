@@ -676,6 +676,14 @@ inline bool isVerticalBoxTextStyle(TextStyleType type)
 
     return mu::contains(types, type);
 }
+
+enum class LiveBrailleMode
+{
+    Undefined = 0,
+    Navigation,
+    BrailleInput,
+    BrailleEdit
+};
 }
 
 #endif // MU_NOTATION_NOTATIONTYPES_H

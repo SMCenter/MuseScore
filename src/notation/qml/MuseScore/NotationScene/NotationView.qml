@@ -176,22 +176,26 @@ FocusScope {
 
             LiveBrailleModel {
                 id: lbmodel
+                property int keys_pressed: 0
+                property string keys_buffer: ""
 
-                onCurrentItemChanged: {
+                onCurrentItemChanged: {                    
                     if(lbmodel.currentItemPositionStart.valueOf() != -1 &&
                             lbmodel.currentItemPositionEnd.valueOf() != -1) {
                             //livebrailleinfo.select(lbmodel.currentItemPositionStart.valueOf(), lbmodel.currentItemPositionEnd.valueOf());
                         if(livebrailleinfo.focus) {
                             livebrailleinfo.cursorPosition = lbmodel.currentItemPositionEnd.valueOf();
                         }
-                    }
-                }
+                    }                    
+                }                
+
                 onLiveBrailleStatusChanged: {
                     livebrailleview.visible = lbmodel.enabled
                 }
+
                 Component.onCompleted: {
                     livebrailleview.visible = lbmodel.enabled
-                }
+                }                                
             }
 
             StyledFlickable {
@@ -205,6 +209,62 @@ FocusScope {
                     id: livebrailleinfo
                     text: lbmodel.liveBrailleInfo
                     wrapMode: Text.AlignLeft
+
+                    property var keyMap: (new Map([
+                      [Qt.Key_0, "0"], [Qt.Key_1, "1"], [Qt.Key_2, "2"], [Qt.Key_3, "3"],
+                      [Qt.Key_4, "4"], [Qt.Key_5, "5"], [Qt.Key_6, "6"], [Qt.Key_7, "7"],
+                      [Qt.Key_4, "8"], [Qt.Key_5, "9"],
+                      [Qt.Key_A, "A"], [Qt.Key_B, "B"], [Qt.Key_C, "C"], [Qt.Key_D, "D"],
+                      [Qt.Key_E, "E"], [Qt.Key_F, "F"], [Qt.Key_G, "G"], [Qt.Key_H, "H"],
+                      [Qt.Key_I, "I"], [Qt.Key_J, "J"], [Qt.Key_K, "K"], [Qt.Key_L, "L"],
+                      [Qt.Key_M, "M"], [Qt.Key_N, "N"], [Qt.Key_O, "O"], [Qt.Key_P, "P"],
+                      [Qt.Key_Q, "Q"], [Qt.Key_R, "R"], [Qt.Key_S, "S"], [Qt.Key_T, "T"],
+                      [Qt.Key_U, "U"], [Qt.Key_V, "V"], [Qt.Key_W, "W"],
+                      [Qt.Key_X, "X"], [Qt.Key_Y, "Y"], [Qt.Key_Z, "Z"],
+                      [Qt.Key_Space, "Space"],
+                      [Qt.Key_Right, "Right"], [Qt.Key_Left, "Left"],
+                      [Qt.Key_Up, "Up"],[Qt.Key_Down, "Down"],
+                      [Qt.Key_PageUp, "PageUp"],[Qt.Key_PageDown, "PageDown"],
+                      [Qt.Key_Home, "Home"],[Qt.Key_End, "End"],
+                      [Qt.Key_Delete, "Delete"], [Qt.Key_Escape, "Escape"],
+                      [Qt.Key_Minus, "Minus"], [Qt.Key_Plus, "Plus"],
+                     ]));
+
+                    cursorDelegate: Rectangle {
+                        id: livebraillecursor
+                        visible: livebrailleinfo.cursorVisible
+                        color: lbmodel.cursorColor
+                        width: livebrailleinfo.cursorRectangle.width
+
+                        SequentialAnimation {
+                            loops: Animation.Infinite
+                            running: livebrailleinfo.cursorVisible
+
+                            PropertyAction {
+                                target: livebraillecursor
+                                property: 'visible'
+                                value: true
+                            }
+
+                            PauseAnimation {
+                                duration: 600
+                            }
+
+                            PropertyAction {
+                                target: livebraillecursor
+                                property: 'visible'
+                                value: false
+                            }
+
+                            PauseAnimation {
+                                duration: 600
+                            }
+
+                            onStopped: {
+                                livebraillecursor.visible = false
+                            }
+                        }
+                    }
 
                     NavigationPanel {
                         id: navPanel2
@@ -250,51 +310,65 @@ FocusScope {
                     }
 
                     onCursorPositionChanged: {
-                        lbmodel.cursorPosition = livebrailleinfo.cursorPosition;
+                        //console.log("pos: ", livebrailleinfo.cursorPosition);
+                        lbmodel.cursorPosition = livebrailleinfo.cursorPosition;                        
                     }
 
-                    Keys.onPressed: {
+                    Keys.onPressed : {
                         if(event.key !== Qt.Key_Shift && event.key !== Qt.Key_Alt &&
                                 event.key !== Qt.Key_Control) {
 
-                            var shortcut = "";
+                            lbmodel.keys_pressed++;
+
+                            var keys = "";
 
                             if(event.modifiers === Qt.ShiftModifier) {
-                                shortcut = shortcut === "" ? "Shift" : shortcut += "+Shift";
+                                keys = keys === "" ? "Shift" : keys += "+Shift";
                             }
 
                             if(event.modifiers === Qt.AltModifier) {
-                                shortcut = shortcut === "" ? "Alt" : shortcut += "+Alt";
+                                keys = keys === "" ? "Alt" : keys += "+Alt";
                             }
                             if(event.modifiers === Qt.ControlModifier) {
-                                shortcut = shortcut === "" ? "Ctrl" : shortcut += "+Ctrl";
+                                keys = keys === "" ? "Ctrl" : keys += "+Ctrl";
                             }
 
-                            if(shortcut !== "") shortcut += "+";
-
-                            if(event.key === Qt.Key_Right) {
-                                shortcut += "Right"
-                            } else if(event.key === Qt.Key_Left) {
-                                shortcut += "Left"
-                            } else if(event.key === Qt.Key_Up) {
-                                shortcut += "Up"
-                            } else if(event.key === Qt.Key_Down) {
-                                shortcut += "Down"
-                            } else if(event.key === Qt.Key_PageUp) {
-                                shortcut += "PgUp"
-                            } else if(event.key === Qt.Key_PageDown) {
-                                shortcut += "PgDown"
-                            } else if(event.key === Qt.Key_Home) {
-                                shortcut += "Home"
-                            } else if(event.key === Qt.Key_End) {
-                                shortcut += "End"
+                            if(keys !== "") {
+                                keys += "+";
                             }
-                            if(shortcut !== "Left" && shortcut !== "Right" &&
-                                    shortcut !== "Up" && shortcut !== "Down") {
-                                lbmodel.shorcut = shortcut;
+
+                            if(keyMap.get(event.key) !== "") {
+                                keys += keyMap.get(event.key);
+                            }
+
+                            if(keys !== "Left" && keys !== "Right"
+                                    && keys !== "Up" && keys !== "Down") {
+                                if(lbmodel.keys_buffer !== "") lbmodel.keys_buffer += "+";
+                                lbmodel.keys_buffer += keys;
                                 event.accepted = true;
                             }
                         }
+                    }
+                    Keys.onReleased: {                        
+                        if(event.key !== Qt.Key_Shift && event.key !== Qt.Key_Alt &&
+                                event.key !== Qt.Key_Control) {
+                            lbmodel.keys_pressed--;
+                            //console.log("Keys.onReleased :", lbmodel.keys_pressed);
+                            if(lbmodel.keys_pressed <= 0) {                                
+                                lbmodel.keys = lbmodel.keys_buffer;
+                                lbmodel.keys_buffer = "";
+                                lbmodel.keys_pressed == 0;
+                                // set the focus back to live braille
+                                navPanel.setActive(false)
+                                fakeNavCtrl.setActive(false);
+                                navPanel2.setActive(true)
+                                fakeNavCtrl2.setActive(true);                                
+                            }
+                        }
+                    }
+                    Keys.onEscapePressed: {
+                        console.log("ESC");
+                        event.accepted = true;
                     }
                 }
 
