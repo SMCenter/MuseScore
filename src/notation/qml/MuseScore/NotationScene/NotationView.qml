@@ -193,6 +193,19 @@ FocusScope {
                     livebrailleview.visible = lbmodel.enabled
                 }
 
+                onLiveBrailleModeChanged: {
+                    switch(lbmodel.mode) {
+                        case 1: { // navigation mode
+                            fakeNavCtrl2.accessible.name = "Live Braille - Navigation mode";
+                            break;
+                        }
+                        case 2: { // Input mode
+                            fakeNavCtrl2.accessible.name = "Live Braille - Input mode";
+                            break;
+                        }
+                    }
+                }
+
                 Component.onCompleted: {
                     livebrailleview.visible = lbmodel.enabled
                 }                                
@@ -213,7 +226,7 @@ FocusScope {
                     property var keyMap: (new Map([
                       [Qt.Key_0, "0"], [Qt.Key_1, "1"], [Qt.Key_2, "2"], [Qt.Key_3, "3"],
                       [Qt.Key_4, "4"], [Qt.Key_5, "5"], [Qt.Key_6, "6"], [Qt.Key_7, "7"],
-                      [Qt.Key_4, "8"], [Qt.Key_5, "9"],
+                      [Qt.Key_8, "8"], [Qt.Key_9, "9"],
                       [Qt.Key_A, "A"], [Qt.Key_B, "B"], [Qt.Key_C, "C"], [Qt.Key_D, "D"],
                       [Qt.Key_E, "E"], [Qt.Key_F, "F"], [Qt.Key_G, "G"], [Qt.Key_H, "H"],
                       [Qt.Key_I, "I"], [Qt.Key_J, "J"], [Qt.Key_K, "K"], [Qt.Key_L, "L"],
@@ -365,11 +378,7 @@ FocusScope {
                                 fakeNavCtrl2.setActive(true);                                
                             }
                         }
-                    }
-                    Keys.onEscapePressed: {
-                        console.log("ESC");
-                        event.accepted = true;
-                    }
+                    }                    
                 }
 
                 ScrollBar.vertical: ScrollBar {}

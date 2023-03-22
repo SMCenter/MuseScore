@@ -48,6 +48,7 @@ public:
     mu::notation::NoteName notename();
     mu::notation::SymbolId articulation();
     int octave();
+    int addedOctave();
     mu::notation::voice_idx_t voice();
     bool slur();
     bool tie();
@@ -56,6 +57,7 @@ public:
     void setNoteName(const mu::notation::NoteName notename);
     void setArticulation(const mu::notation::SymbolId articulation);
     void setOctave(const int octave);
+    void setAddedOctave(const int octave);
     void setVoicce(const mu::notation::voice_idx_t voice);
     void setSlur(const bool s);
     void setTie(const bool s);
@@ -65,6 +67,7 @@ private:
     mu::notation::NoteName _note_name = mu::notation::NoteName::C;
     mu::notation::SymbolId _articulation = mu::notation::SymbolId::noSym;
     int _octave = 4;
+    int _added_octave = -1;
     mu::notation::voice_idx_t _voice = 0;
     QString _input_buffer;
     int _code_num = 0;

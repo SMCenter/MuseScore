@@ -91,9 +91,9 @@ public:
     void setKeys(const QString&) override;
 
     void setMode(const LiveBrailleMode) override;
+    void toggleMode() override;
     bool isNavigationMode() override;
-    bool isBrailleInputMode() override;
-    bool isBrailleEditMode() override;
+    bool isBrailleInputMode() override;    
 
     void setCursorColor(const QString color) override;
 

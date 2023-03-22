@@ -97,6 +97,15 @@ NotationLiveBraille::NotationLiveBraille(const Notation* notation)
             m_braille_input.initialize();
         }
     });
+
+    notation->interaction()->noteInput()->noteAdded().onNotify(this, [this]() {
+        LOGD() << "Note added ";
+        if(current_engraving_item != NULL && current_engraving_item->isNote()) {
+            LOGD() << current_engraving_item->accessibleInfo();
+            Note* note = toNote(current_engraving_item);
+            m_braille_input.setAddedOctave(note->octave());
+        }
+    });
 }
 
 void NotationLiveBraille::updateTableForLyricsFromPreferences()
@@ -365,29 +374,32 @@ void NotationLiveBraille::setKeys(const QString& sequence)
             interaction()->deleteSelection();            
         }
     } else if (seq == "N") {
-        setMode(LiveBrailleMode::BrailleInput);
-        interaction()->noteInput()->startNoteInput();
+        toggleMode();
+        if(isBrailleInputMode()) {
+            interaction()->noteInput()->startNoteInput();
+        } else {
+            interaction()->noteInput()->endNoteInput();
+        }
         m_braille_input.initialize();
-    } else if (seq == "E") {
-        setMode(LiveBrailleMode::Navigation);
-        interaction()->noteInput()->endNoteInput();
     } else if (seq == "Plus") {
-        interaction()->noteInput()->doubleNoteInputDuration();
+        if(isBrailleInputMode()) {
+            interaction()->noteInput()->doubleNoteInputDuration();
+         }
     } else if (seq == "Minus") {
-        interaction()->noteInput()->halveNoteInputDuration();    
+        if(isBrailleInputMode()) {
+            interaction()->noteInput()->halveNoteInputDuration();
+        }
     } else if(isDigit(sequence)) {
-        if(!isNavigationMode()) {
+        if(isBrailleInputMode()) {
             Duration d = getDuration(sequence);
             setInputNoteDuration(d);
         }
-    } else {
+    } else if(isBrailleInputMode()) {        
         QString pattern = parseBrailleKeyInput(sequence);
         if(!pattern.isEmpty()) {
             m_braille_input.insertToBuffer(pattern);
-        }
-        int old_octave = m_braille_input.octave();
+        }        
         BraillePatternType type = m_braille_input.parseBraille();
-        int new_octave = m_braille_input.octave();
         LOGD() << m_braille_input.buffer() << " >> " << (int)type;
         switch(type) {
             case BraillePatternType::Note: {
@@ -396,13 +408,15 @@ void NotationLiveBraille::setKeys(const QString& sequence)
                 }                                
                 interaction()->noteInput()->addNote(m_braille_input.notename(), NoteAddingMode::NextChord);
 
-                if(old_octave < new_octave) {
-                    for(int i = old_octave; i < new_octave; i++){
-                        interaction()->movePitch(MoveDirection::Up, PitchMode::OCTAVE);
-                    }
-                } else if(old_octave > new_octave) {
-                    for(int i = new_octave; i < old_octave; i++){
-                        interaction()->movePitch(MoveDirection::Down, PitchMode::OCTAVE);
+                if(m_braille_input.addedOctave() != -1) {
+                    if(m_braille_input.addedOctave() < m_braille_input.octave()) {
+                        for(int i = m_braille_input.addedOctave(); i < m_braille_input.octave(); i++){
+                            interaction()->movePitch(MoveDirection::Up, PitchMode::OCTAVE);
+                        }
+                    } else if(m_braille_input.addedOctave() > m_braille_input.octave()) {
+                        for(int i = m_braille_input.octave(); i < m_braille_input.addedOctave(); i++){
+                            interaction()->movePitch(MoveDirection::Down, PitchMode::OCTAVE);
+                        }
                     }
                 }
                 m_braille_input.reset();
@@ -487,13 +501,23 @@ void NotationLiveBraille::setMode(const LiveBrailleMode mode)
             break;
         case LiveBrailleMode::BrailleInput:
             setCursorColor("green");
-            break;
-        case LiveBrailleMode::BrailleEdit:
-            setCursorColor("red");
-            break;
+            break;        
     }
 
     m_mode.set((int)mode);
+}
+
+void NotationLiveBraille::toggleMode()
+{
+    switch ((LiveBrailleMode)mode().val) {
+        case LiveBrailleMode::Undefined:
+        case LiveBrailleMode::Navigation:
+            setMode(LiveBrailleMode::BrailleInput);
+            break;
+        case LiveBrailleMode::BrailleInput:
+            setMode(LiveBrailleMode::Navigation);
+            break;
+    }
 }
 
 bool NotationLiveBraille::isNavigationMode()
@@ -504,11 +528,6 @@ bool NotationLiveBraille::isNavigationMode()
 bool NotationLiveBraille::isBrailleInputMode()
 {
     return mode().val == (int)LiveBrailleMode::BrailleInput;
-}
-
-bool NotationLiveBraille::isBrailleEditMode()
-{
-    return mode().val == (int)LiveBrailleMode::BrailleEdit;
 }
 
 void NotationLiveBraille::setCursorColor(const QString color)
@@ -528,8 +547,10 @@ void NotationLiveBraille::setCurrentEngravingItem(EngravingItem* e, bool select)
     if(!e) {
         return;
     }
-    if(isNavigationMode()) {
-        current_engraving_item  = e;
+
+    current_engraving_item  = e;
+
+    if(isNavigationMode()) {        
         if(select) {
             interaction()->select({e});
         }

@@ -73,8 +73,7 @@ public:
     int mode() const;
     void setMode(int mode) const;
     bool isNavigationMode();
-    bool isBrailleInputMode();
-    bool isBrailleEditMode();
+    bool isBrailleInputMode();    
 
     QString cursorColor() const;
 

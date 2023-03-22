@@ -48,9 +48,9 @@ public:
     virtual void setKeys(const QString&) = 0;
 
     virtual void setMode(const LiveBrailleMode) = 0;
+    virtual void toggleMode() = 0;
     virtual bool isNavigationMode() = 0;
-    virtual bool isBrailleInputMode() = 0;
-    virtual bool isBrailleEditMode() = 0;
+    virtual bool isBrailleInputMode() = 0;    
 
     virtual void setCursorColor(const QString) = 0;
 };

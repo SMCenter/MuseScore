@@ -277,6 +277,7 @@ void BrailleInputState::reset()
     _input_buffer.clear();
     _code_num = 0;
     _slur = _tie = false;
+    _added_octave = -1;
 }
 
 void BrailleInputState::resetBuffer()
@@ -398,6 +399,8 @@ BraillePatternType BrailleInputState::parseBraille() {
         return BraillePatternType::Unrecognized;
     }
 
+    setNoteName(getNoteName(btp.data.front()));
+
     int cursor = lst.length() - 2;
 
     if(cursor >= 0) {
@@ -446,6 +449,11 @@ int BrailleInputState::octave()
     return _octave;
 }
 
+int BrailleInputState::addedOctave()
+{
+    return _added_octave;
+}
+
 mu::notation::voice_idx_t BrailleInputState::voice()
 {
     return _voice;
@@ -479,6 +487,11 @@ void BrailleInputState::setArticulation(const mu::notation::SymbolId articulatio
 void BrailleInputState::setOctave(const int octave)
 {
     _octave = octave;
+}
+
+void BrailleInputState::setAddedOctave(const int octave)
+{
+    _added_octave = octave;
 }
 
 void BrailleInputState::setVoicce(const mu::notation::voice_idx_t voice)
