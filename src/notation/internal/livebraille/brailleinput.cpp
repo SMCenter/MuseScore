@@ -3,6 +3,10 @@
 
 #include "log.h"
 
+using namespace mu::notation;
+
+namespace mu::notation {
+
 BrailleInputState brailleInputState;
 
 QString parseBrailleKeyInput(QString keys)
@@ -111,26 +115,55 @@ BraillePattern recognizeBrailleInput(QString pattern)
     return res;
 }
 
-mu::notation::NoteName getNoteName(const braille_code* code)
+NoteName getNoteName(const braille_code* code)
 {
     char c = code->tag[0];
     switch (c) {
         case 'A': case 'a':
-            return mu::notation::NoteName::A;
+            return NoteName::A;
         case 'B': case 'b':
-            return mu::notation::NoteName::B;
+            return NoteName::B;
         case 'C': case 'c':
-            return mu::notation::NoteName::C;
+            return NoteName::C;
         case 'D': case 'd':
-            return mu::notation::NoteName::D;
+            return NoteName::D;
         case 'E': case 'e':
-            return mu::notation::NoteName::E;
+            return NoteName::E;
         case 'F': case 'f':
-            return mu::notation::NoteName::F;
+            return NoteName::F;
         case 'G': case 'g':
-            return mu::notation::NoteName::G;
+            return NoteName::G;
     }
-    return mu::notation::NoteName::C;
+    return NoteName::C;
+}
+
+std::vector<DurationType> getNoteDurations(const braille_code* code)
+{
+    for(int i=0; i < 7; i++) {
+        if(code->code == Braille_wholeNotes[i]->code) {
+            return {DurationType::V_WHOLE, DurationType::V_16TH, DurationType::V_256TH};
+        }
+    }
+
+    for(int i=0; i < 7; i++) {
+        if(code->code == Braille_halfNotes[i]->code) {
+            return {DurationType::V_HALF, DurationType::V_32ND, DurationType::V_512TH};
+        }
+    }
+
+    for(int i=0; i < 7; i++) {
+        if(code->code == Braille_quarterNotes[i]->code) {
+            return {DurationType::V_QUARTER, DurationType::V_64TH, DurationType::V_1024TH};
+        }
+    }
+
+    for(int i=0; i < 7; i++) {
+        if(code->code == Braille_8thNotes[i]->code) {
+            return {DurationType::V_EIGHTH, DurationType::V_128TH};
+        }
+    }
+
+    return {};
 }
 
 int getInterval(const braille_code* code)
@@ -178,60 +211,60 @@ bool isNoteName(const braille_code* code)
     return std::find(note_names.begin(), note_names.end(), code->tag) != note_names.end();
 }
 
-QString fromNoteName(mu::notation::NoteName notename) {
+QString fromNoteName(NoteName notename) {
     switch (notename) {
-        case mu::notation::NoteName::A:
+        case NoteName::A:
             return "A";
-        case mu::notation::NoteName::B:
+        case NoteName::B:
             return "B";
-        case mu::notation::NoteName::C:
+        case NoteName::C:
             return "C";
-        case mu::notation::NoteName::D:
+        case NoteName::D:
             return "D";
-        case mu::notation::NoteName::E:
+        case NoteName::E:
             return "E";
-        case mu::notation::NoteName::F:
+        case NoteName::F:
             return "F";
-        case mu::notation::NoteName::G:
+        case NoteName::G:
             return "G";
         default:
             return "";
     }
 }
 
-mu::notation::AccidentalType getAccidentalType(const braille_code* code)
+AccidentalType getAccidentalType(const braille_code* code)
 {
     if(code->tag == "NaturalAccidental") {
-        return mu::notation::AccidentalType::NATURAL;
+        return AccidentalType::NATURAL;
     }
 
     if(code->tag == "SharpAccidental") {
-        return mu::notation::AccidentalType::SHARP;
+        return AccidentalType::SHARP;
     }
 
     if(code->tag == "FlatAccidental") {
-        return mu::notation::AccidentalType::FLAT;
+        return AccidentalType::FLAT;
     }
 
-    return mu::notation::AccidentalType::NONE;
+    return AccidentalType::NONE;
 }
 
-mu::notation::SymbolId getArticulation(const braille_code* code)
+SymbolId getArticulation(const braille_code* code)
 {
-    static std::map<std::string, mu::notation::SymbolId> articulations = {
-        {"Finger0", mu::notation::SymbolId::fingering0},
-        {"Finger1", mu::notation::SymbolId::fingering1},
-        {"Finger2", mu::notation::SymbolId::fingering2},
-        {"Finger3", mu::notation::SymbolId::fingering3},
-        {"Finger4", mu::notation::SymbolId::fingering4},
-        {"Finger5", mu::notation::SymbolId::fingering5},
+    static std::map<std::string, SymbolId> articulations = {
+        {"Finger0", SymbolId::fingering0},
+        {"Finger1", SymbolId::fingering1},
+        {"Finger2", SymbolId::fingering2},
+        {"Finger3", SymbolId::fingering3},
+        {"Finger4", SymbolId::fingering4},
+        {"Finger5", SymbolId::fingering5},
     };
 
     if (articulations.find(code->tag) != articulations.end()) {
         return articulations[code->tag];
     }
 
-    return mu::notation::SymbolId::noSym;
+    return SymbolId::noSym;
 }
 
 int getOctave(const braille_code* code)
@@ -259,9 +292,10 @@ BrailleInputState::~BrailleInputState()
 
 void BrailleInputState::initialize()
 {
-    _accidental = mu::notation::AccidentalType::NONE;
-    _note_name = mu::notation::NoteName::C;
-    _articulation = mu::notation::SymbolId::noSym;
+    LOGD() << "...";
+    _accidental = AccidentalType::NONE;
+    _note_name = NoteName::C;
+    _articulation = SymbolId::noSym;
     _octave = 4;
     _voice = 0;
     _input_buffer.clear();
@@ -271,9 +305,9 @@ void BrailleInputState::initialize()
 
 void BrailleInputState::reset()
 {
-    _accidental = mu::notation::AccidentalType::NONE;
-    _note_name = mu::notation::NoteName::C;
-    _articulation = mu::notation::SymbolId::noSym;
+    _accidental = AccidentalType::NONE;
+    _note_name = NoteName::C;
+    _articulation = SymbolId::noSym;
     _input_buffer.clear();
     _code_num = 0;
     _slur = _tie = false;
@@ -349,7 +383,7 @@ BraillePatternType BrailleInputState::parseBraille() {
     if(cursor >= 0) {
         btp = recognizeBrailleInput(lst.at(cursor));
         if(btp.type == BraillePatternType::Accidental) {
-            mu::notation::AccidentalType acc = getAccidentalType(btp.data.front());
+            AccidentalType acc = getAccidentalType(btp.data.front());
             setAccidental(acc);
             cursor--;
         }
@@ -388,6 +422,8 @@ BraillePatternType BrailleInputState::parseBraille() {
 
     BraillePattern btp = recognizeBrailleInput(_input_buffer);
 
+    LOGD() << "type " << (int)btp.type;
+
     if(btp.type != BraillePatternType::Unrecognized) {
         return btp.type;
     }
@@ -399,7 +435,10 @@ BraillePatternType BrailleInputState::parseBraille() {
         return BraillePatternType::Unrecognized;
     }
 
+    LOGD() << " note name: " << fromNoteName((getNoteName(btp.data.front())));
+
     setNoteName(getNoteName(btp.data.front()));
+    setNoteDurations(getNoteDurations(btp.data.front()));
 
     int cursor = lst.length() - 2;
 
@@ -407,7 +446,7 @@ BraillePatternType BrailleInputState::parseBraille() {
         btp = recognizeBrailleInput(lst.at(cursor));
         if(btp.type == BraillePatternType::Octave) {
             int octave = getOctave(btp.data.front());
-            setOctave(octave);
+            setAddedOctave(octave);
             cursor--;
         }
     }
@@ -415,7 +454,7 @@ BraillePatternType BrailleInputState::parseBraille() {
     if(cursor >= 0) {
         btp = recognizeBrailleInput(lst.at(cursor));
         if(btp.type == BraillePatternType::Accidental) {
-            mu::notation::AccidentalType acc = getAccidentalType(btp.data.front());
+            AccidentalType acc = getAccidentalType(btp.data.front());
             setAccidental(acc);
             cursor--;
         }
@@ -429,17 +468,46 @@ QString BrailleInputState::buffer()
     return _input_buffer;
 }
 
-mu::notation::AccidentalType BrailleInputState::accidental()
+AccidentalType BrailleInputState::accidental()
 {
     return _accidental;
 }
 
-mu::notation::NoteName BrailleInputState::notename()
+NoteName BrailleInputState::noteName()
 {
     return _note_name;
 }
 
-mu::notation::SymbolId BrailleInputState::articulation()
+DurationType BrailleInputState::currentDuration()
+{
+    return _current_duration;
+}
+
+std::vector<DurationType> BrailleInputState::noteDurations()
+{
+    return _note_durations;
+}
+
+bool BrailleInputState::isDurationMatch()
+{
+    return std::find(_note_durations.begin(), _note_durations.end(), _current_duration) != _note_durations.end();
+}
+
+DurationType BrailleInputState::getCloseDuration()
+{
+    if(isDurationMatch()) {
+        return _current_duration;
+    } else {
+        for(auto d : _note_durations) {
+            if(d > _current_duration) {
+                return d;
+            }
+        }
+    }
+    return _note_durations.back();
+}
+
+SymbolId BrailleInputState::articulation()
 {
     return _articulation;
 }
@@ -454,7 +522,7 @@ int BrailleInputState::addedOctave()
     return _added_octave;
 }
 
-mu::notation::voice_idx_t BrailleInputState::voice()
+voice_idx_t BrailleInputState::voice()
 {
     return _voice;
 }
@@ -469,17 +537,27 @@ bool BrailleInputState::tie()
     return _tie;
 }
 
-void BrailleInputState::setAccidental(const mu::notation::AccidentalType accidental)
+void BrailleInputState::setAccidental(const AccidentalType accidental)
 {
     _accidental = accidental;
 }
 
-void BrailleInputState::setNoteName(const mu::notation::NoteName notename)
+void BrailleInputState::setNoteName(const NoteName notename)
 {
     _note_name = notename;
 }
 
-void BrailleInputState::setArticulation(const mu::notation::SymbolId articulation)
+void BrailleInputState::setCurrentDuration(const DurationType duration)
+{
+    _current_duration = duration;
+}
+
+void BrailleInputState::setNoteDurations(const std::vector<DurationType> durations)
+{
+    _note_durations = durations;
+}
+
+void BrailleInputState::setArticulation(const SymbolId articulation)
 {
     _articulation = articulation;
 }
@@ -494,7 +572,7 @@ void BrailleInputState::setAddedOctave(const int octave)
     _added_octave = octave;
 }
 
-void BrailleInputState::setVoicce(const mu::notation::voice_idx_t voice)
+void BrailleInputState::setVoicce(const voice_idx_t voice)
 {
     _voice = voice;
 }
@@ -507,4 +585,5 @@ void BrailleInputState::setSlur(const bool s)
 void BrailleInputState::setTie(const bool s)
 {
     _tie = s;
+}
 }

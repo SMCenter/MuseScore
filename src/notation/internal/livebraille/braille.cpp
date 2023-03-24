@@ -263,6 +263,56 @@ braille_code * Braille_gNotes[] = {
     &Braille_g64th, &Braille_g128th, &Braille_g256th,
     &Braille_g512th, &Braille_g128th, &Braille_g2048th,
     &Braille_gBreveAlt};
+
+braille_code * Braille_wholeNotes[] = {
+    &Braille_aWhole, &Braille_bWhole, &Braille_cWhole,
+    &Braille_dWhole, &Braille_eWhole, &Braille_fWhole, &Braille_gWhole
+};
+braille_code * Braille_halfNotes[] = {
+    &Braille_aHalf, &Braille_bHalf, &Braille_cHalf,
+    &Braille_dHalf, &Braille_eHalf, &Braille_fHalf, &Braille_gHalf
+};
+braille_code * Braille_quarterNotes[] = {
+    &Braille_aQuarter, &Braille_bQuarter, &Braille_cQuarter,
+    &Braille_dQuarter, &Braille_eQuarter, &Braille_fQuarter, &Braille_gQuarter
+};
+braille_code * Braille_8thNotes[] = {
+    &Braille_a8th, &Braille_b8th, &Braille_c8th,
+    &Braille_d8th, &Braille_e8th, &Braille_f8th, &Braille_g8th
+};
+braille_code * Braille_16thNotes[] = {
+    &Braille_a16th, &Braille_b16th, &Braille_c16th,
+    &Braille_d16th, &Braille_e16th, &Braille_f16th, &Braille_g16th
+};
+braille_code * Braille_32ndNotes[] = {
+    &Braille_a32nd, &Braille_b32nd, &Braille_c32nd,
+    &Braille_d32nd, &Braille_e32nd, &Braille_f32nd, &Braille_g32nd
+};
+braille_code * Braille_64thNotes[] = {
+    &Braille_a64th, &Braille_b64th, &Braille_c64th,
+    &Braille_d64th, &Braille_e64th, &Braille_f64th, &Braille_g64th
+};
+braille_code * Braille_128thNotes[] = {
+    &Braille_a128th, &Braille_b128th, &Braille_c128th,
+    &Braille_d128th, &Braille_e128th, &Braille_f128th, &Braille_g128th
+};
+braille_code * Braille_256thNotes[] = {
+    &Braille_a256th, &Braille_b256th, &Braille_c256th,
+    &Braille_d256th, &Braille_e256th, &Braille_f256th, &Braille_g256th
+};
+braille_code * Braille_512thNotes[] = {
+    &Braille_a512th, &Braille_b512th, &Braille_c512th,
+    &Braille_d512th, &Braille_e512th, &Braille_f512th, &Braille_g512th
+};
+braille_code * Braille_1024thNotes[] = {
+    &Braille_a1024th, &Braille_b1024th, &Braille_c1024th,
+    &Braille_d1024th, &Braille_e1024th, &Braille_f1024th, &Braille_g1024th
+};
+braille_code * Braille_2048thNotes[] = {
+    &Braille_a2048th, &Braille_b2048th, &Braille_c2048th,
+    &Braille_d2048th, &Braille_e2048th, &Braille_f2048th, &Braille_g2048th
+};
+
 //####################
 
 //#Braille rests' shapes are same as notes above, whole rest=16th rest=256th etc.

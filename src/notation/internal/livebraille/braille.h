@@ -209,6 +209,19 @@ extern braille_code * Braille_dNotes[];
 extern braille_code * Braille_eNotes[];
 extern braille_code * Braille_fNotes[];
 extern braille_code * Braille_gNotes[];
+
+extern braille_code * Braille_wholeNotes[];
+extern braille_code * Braille_halfNotes[];
+extern braille_code * Braille_quarterNotes[];
+extern braille_code * Braille_8thNotes[];
+extern braille_code * Braille_16thNotes[];
+extern braille_code * Braille_32ndNotes[];
+extern braille_code * Braille_64thNotes[];
+extern braille_code * Braille_128thNotes[];
+extern braille_code * Braille_256thNotes[];
+extern braille_code * Braille_512thNotes[];
+extern braille_code * Braille_1024thNotes[];
+extern braille_code * Braille_2048thNotes[];
 //####################
 
 //#Braille rests' shapes are same as notes above, whole rest=16th rest=256th etc.

@@ -4,6 +4,8 @@
 #include "notationtypes.h"
 #include "braille.h"
 
+namespace mu::notation {
+
 #define MAX_CODE_NUM 20
 
 enum class BraillePatternType
@@ -44,45 +46,56 @@ public:
 
     BraillePatternType parseBraille();
 
-    mu::notation::AccidentalType accidental();
-    mu::notation::NoteName notename();
-    mu::notation::SymbolId articulation();
+    AccidentalType accidental();
+    NoteName noteName();
+
+    DurationType currentDuration();
+    std::vector<DurationType> noteDurations();
+    bool isDurationMatch();
+    DurationType getCloseDuration();
+
+    SymbolId articulation();
     int octave();
     int addedOctave();
-    mu::notation::voice_idx_t voice();
+    voice_idx_t voice();
     bool slur();
     bool tie();
 
-    void setAccidental(const mu::notation::AccidentalType accidental);
-    void setNoteName(const mu::notation::NoteName notename);
-    void setArticulation(const mu::notation::SymbolId articulation);
+    void setAccidental(const AccidentalType accidental);
+    void setNoteName(const NoteName notename);
+    void setCurrentDuration(const DurationType duration);
+    void setNoteDurations(const std::vector<DurationType> durations);
+    void setArticulation(const SymbolId articulation);
     void setOctave(const int octave);
     void setAddedOctave(const int octave);
-    void setVoicce(const mu::notation::voice_idx_t voice);
+    void setVoicce(const voice_idx_t voice);
     void setSlur(const bool s);
     void setTie(const bool s);
 
 private:
-    mu::notation::AccidentalType _accidental = mu::notation::AccidentalType::NONE;
-    mu::notation::NoteName _note_name = mu::notation::NoteName::C;
-    mu::notation::SymbolId _articulation = mu::notation::SymbolId::noSym;
+    AccidentalType _accidental = AccidentalType::NONE;
+    NoteName _note_name = NoteName::C;
+    SymbolId _articulation = SymbolId::noSym;
     int _octave = 4;
     int _added_octave = -1;
-    mu::notation::voice_idx_t _voice = 0;
+    voice_idx_t _voice = 0;
     QString _input_buffer;
     int _code_num = 0;
     bool _slur, _tie;
+    DurationType _current_duration;
+    std::vector<DurationType> _note_durations;
 };
 
 QString parseBrailleKeyInput(QString keys);
 BraillePattern recognizeBrailleInput(QString pattern);
 
-mu::notation::NoteName getNoteName(const braille_code* code);
+NoteName getNoteName(const braille_code* code);
+std::vector<DurationType> getNoteDurations(const braille_code* code);
 int getInterval(const braille_code* code);
 bool isNoteName(const braille_code* code);
-QString fromNoteName(mu::notation::NoteName);
-mu::notation::AccidentalType getAccidentalType(const braille_code* code);
-mu::notation::SymbolId getArticulation(const braille_code* code);
+QString fromNoteName(NoteName);
+AccidentalType getAccidentalType(const braille_code* code);
+SymbolId getArticulation(const braille_code* code);
 int getOctave(const braille_code* code);
-
+}
 #endif // BRAILLEINPUT_H

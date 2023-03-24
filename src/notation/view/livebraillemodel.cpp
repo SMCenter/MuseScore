@@ -133,8 +133,7 @@ bool LiveBrailleModel::isBrailleInputMode()
 
 QString LiveBrailleModel::cursorColor() const
 {
-    QString color = livebraille() ? QString::fromStdString(livebraille()->cursorColor().val) : QString();
-    LOGD() << color;
+    QString color = livebraille() ? QString::fromStdString(livebraille()->cursorColor().val) : QString();    
     return color;
 }
 
