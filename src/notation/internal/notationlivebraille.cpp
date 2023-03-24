@@ -388,16 +388,15 @@ void NotationLiveBraille::setKeys(const QString& sequence)
         if(isBrailleInputMode()) {
             interaction()->noteInput()->halveNoteInputDuration();
         }
-    } else if(isDigit(sequence)) {
-        if(isBrailleInputMode()) {
-            Duration d = getDuration(sequence);
-            setInputNoteDuration(d);
-        }
+    } else if(seq == "Space") {
+        m_braille_input.resetBuffer();
     } else if(isBrailleInputMode()) {        
         QString pattern = parseBrailleKeyInput(sequence);
         if(!pattern.isEmpty()) {
             m_braille_input.insertToBuffer(pattern);
-        }        
+        } else {
+            m_braille_input.insertToBuffer(sequence);
+        }
         BraillePatternType type = m_braille_input.parseBraille();
         switch(type) {
             case BraillePatternType::Note: {
@@ -454,6 +453,7 @@ void NotationLiveBraille::setKeys(const QString& sequence)
                     interaction()->addIntervalToSelectedNotes(interval);
                 }
                 m_braille_input.reset();
+                break;
             }
             /*
             case BraillePatternType::LongSlurStart: {
@@ -467,7 +467,17 @@ void NotationLiveBraille::setKeys(const QString& sequence)
                 break;
             }
             */
-            default: {
+            default: {                
+                if(m_braille_input.buffer() == "G-1") {
+                    m_braille_input.setNoteGroup(NoteGroup::Group1);
+                    m_braille_input.resetBuffer();
+                } else if(m_braille_input.buffer() == "G-2") {
+                    m_braille_input.setNoteGroup(NoteGroup::Group2);
+                    m_braille_input.resetBuffer();
+                } else if(m_braille_input.buffer() == "G-3") {
+                    m_braille_input.setNoteGroup(NoteGroup::Group3);
+                    m_braille_input.resetBuffer();
+                }
                 break;
             }
         }

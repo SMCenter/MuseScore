@@ -301,6 +301,7 @@ void BrailleInputState::initialize()
     _input_buffer.clear();
     _code_num = 0;
     _slur = _tie = false;
+    _note_group = NoteGroup::Group1;
 }
 
 void BrailleInputState::reset()
@@ -312,6 +313,7 @@ void BrailleInputState::reset()
     _code_num = 0;
     _slur = _tie = false;
     _added_octave = -1;
+    _note_group = NoteGroup::Group1;
 }
 
 void BrailleInputState::resetBuffer()
@@ -422,9 +424,8 @@ BraillePatternType BrailleInputState::parseBraille() {
 
     BraillePattern btp = recognizeBrailleInput(_input_buffer);
 
-    LOGD() << "type " << (int)btp.type;
-
-    if(btp.type != BraillePatternType::Unrecognized) {
+    if(btp.type != BraillePatternType::Unrecognized
+       && btp.type != BraillePatternType::Note) {
         return btp.type;
     }
 
@@ -434,8 +435,6 @@ BraillePatternType BrailleInputState::parseBraille() {
     if(btp.type != BraillePatternType::Note) {
         return BraillePatternType::Unrecognized;
     }
-
-    LOGD() << " note name: " << fromNoteName((getNoteName(btp.data.front())));
 
     setNoteName(getNoteName(btp.data.front()));
     setNoteDurations(getNoteDurations(btp.data.front()));
@@ -478,6 +477,11 @@ NoteName BrailleInputState::noteName()
     return _note_name;
 }
 
+NoteGroup BrailleInputState::noteGroup()
+{
+    return _note_group;
+}
+
 DurationType BrailleInputState::currentDuration()
 {
     return _current_duration;
@@ -494,16 +498,32 @@ bool BrailleInputState::isDurationMatch()
 }
 
 DurationType BrailleInputState::getCloseDuration()
-{
-    if(isDurationMatch()) {
-        return _current_duration;
-    } else {
-        for(auto d : _note_durations) {
-            if(d > _current_duration) {
-                return d;
+{    
+    switch(_note_group) {
+        case NoteGroup::Group1: {
+            return _note_durations[0];
+            break;
+        }
+        case NoteGroup::Group2: {
+            return _note_durations[1];
+            break;
+        }
+        case NoteGroup::Group3: {
+            return _note_durations[2];
+            break;
+        }
+        default: {
+            if(isDurationMatch()) {
+                return _current_duration;
+            } else {
+                for(auto d : _note_durations) {
+                    if(d > _current_duration) {
+                        return d;
+                    }
+                }
             }
         }
-    }
+     }
     return _note_durations.back();
 }
 
@@ -545,6 +565,12 @@ void BrailleInputState::setAccidental(const AccidentalType accidental)
 void BrailleInputState::setNoteName(const NoteName notename)
 {
     _note_name = notename;
+}
+
+void BrailleInputState::setNoteGroup(const NoteGroup notegroup)
+{
+    LOGD() << (int) notegroup;
+    _note_group = notegroup;
 }
 
 void BrailleInputState::setCurrentDuration(const DurationType duration)

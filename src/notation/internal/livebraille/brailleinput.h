@@ -32,6 +32,14 @@ struct BraillePattern
     std::vector<braille_code *> data;
 };
 
+enum class NoteGroup
+{
+    Undefined = 0,
+    Group1, // whole, half, quarter, 8th
+    Group2, // 16th, 32nd, 64th, 128th
+    Group3  // 256th, 512th, 1024th, 2048th
+};
+
 class BrailleInputState
 {
 public:
@@ -48,6 +56,7 @@ public:
 
     AccidentalType accidental();
     NoteName noteName();
+    NoteGroup noteGroup();
 
     DurationType currentDuration();
     std::vector<DurationType> noteDurations();
@@ -59,7 +68,7 @@ public:
     int addedOctave();
     voice_idx_t voice();
     bool slur();
-    bool tie();
+    bool tie();    
 
     void setAccidental(const AccidentalType accidental);
     void setNoteName(const NoteName notename);
@@ -71,6 +80,7 @@ public:
     void setVoicce(const voice_idx_t voice);
     void setSlur(const bool s);
     void setTie(const bool s);
+    void setNoteGroup(const NoteGroup g);
 
 private:
     AccidentalType _accidental = AccidentalType::NONE;
@@ -84,6 +94,7 @@ private:
     bool _slur, _tie;
     DurationType _current_duration;
     std::vector<DurationType> _note_durations;
+    NoteGroup _note_group = NoteGroup::Undefined;
 };
 
 QString parseBrailleKeyInput(QString keys);
