@@ -48,6 +48,14 @@ BraillePattern recognizeBrailleInput(QString pattern)
         return res;
     }
 
+    code = findRest(p);
+    if(code != NULL) {
+        res.type = BraillePatternType::Rest;
+        res.data = {code};
+        return res;
+    }
+
+
     code = findOctave(p);
     if(code != NULL) {
         res.type = BraillePatternType::Octave;
@@ -141,19 +149,22 @@ std::vector<DurationType> getNoteDurations(const braille_code* code)
 {
     for(int i=0; i < 7; i++) {
         if(code->code == Braille_wholeNotes[i]->code) {
-            return {DurationType::V_WHOLE, DurationType::V_16TH, DurationType::V_256TH};
+            //return {DurationType::V_WHOLE, DurationType::V_16TH, DurationType::V_256TH};
+            return {DurationType::V_WHOLE, DurationType::V_16TH};
         }
     }
 
     for(int i=0; i < 7; i++) {
         if(code->code == Braille_halfNotes[i]->code) {
-            return {DurationType::V_HALF, DurationType::V_32ND, DurationType::V_512TH};
+            //return {DurationType::V_HALF, DurationType::V_32ND, DurationType::V_512TH};
+            return {DurationType::V_HALF, DurationType::V_32ND};
         }
     }
 
     for(int i=0; i < 7; i++) {
         if(code->code == Braille_quarterNotes[i]->code) {
-            return {DurationType::V_QUARTER, DurationType::V_64TH, DurationType::V_1024TH};
+            //return {DurationType::V_QUARTER, DurationType::V_64TH, DurationType::V_1024TH};
+            return {DurationType::V_QUARTER, DurationType::V_64TH};
         }
     }
 
@@ -161,6 +172,27 @@ std::vector<DurationType> getNoteDurations(const braille_code* code)
         if(code->code == Braille_8thNotes[i]->code) {
             return {DurationType::V_EIGHTH, DurationType::V_128TH};
         }
+    }
+
+    return {};
+}
+
+std::vector<DurationType> getRestDurations(const braille_code* code)
+{
+    if(code->code == Braille_RestWhole.code) {
+        return {DurationType::V_WHOLE, DurationType::V_16TH};
+    }
+
+    if(code->code == Braille_RestHalf.code) {
+        return {DurationType::V_HALF, DurationType::V_32ND};
+    }
+
+    if(code->code == Braille_RestQuarter.code) {
+        return {DurationType::V_QUARTER, DurationType::V_64TH};
+    }
+
+    if(code->code == Braille_Rest8th.code) {
+        return {DurationType::V_EIGHTH, DurationType::V_128TH};
     }
 
     return {};
@@ -312,8 +344,7 @@ void BrailleInputState::reset()
     _input_buffer.clear();
     _code_num = 0;
     _slur = _tie = false;
-    _added_octave = -1;
-    _note_group = NoteGroup::Group1;
+    _added_octave = -1;    
 }
 
 void BrailleInputState::resetBuffer()
@@ -425,41 +456,51 @@ BraillePatternType BrailleInputState::parseBraille() {
     BraillePattern btp = recognizeBrailleInput(_input_buffer);
 
     if(btp.type != BraillePatternType::Unrecognized
-       && btp.type != BraillePatternType::Note) {
+       && btp.type != BraillePatternType::Note
+       && btp.type != BraillePatternType::Rest) {
         return btp.type;
     }
 
     QStringList lst = _input_buffer.split(QString::fromStdString("-"));
 
     btp = recognizeBrailleInput(lst.back());
-    if(btp.type != BraillePatternType::Note) {
+
+    switch (btp.type) {
+    case BraillePatternType::Note: {
+        setNoteName(getNoteName(btp.data.front()));
+        setNoteDurations(getNoteDurations(btp.data.front()));
+
+        int cursor = lst.length() - 2;
+
+        if(cursor >= 0) {
+            btp = recognizeBrailleInput(lst.at(cursor));
+            if(btp.type == BraillePatternType::Octave) {
+                int octave = getOctave(btp.data.front());
+                setAddedOctave(octave);
+                cursor--;
+            }
+        }
+
+        if(cursor >= 0) {
+            btp = recognizeBrailleInput(lst.at(cursor));
+            if(btp.type == BraillePatternType::Accidental) {
+                AccidentalType acc = getAccidentalType(btp.data.front());
+                setAccidental(acc);
+                cursor--;
+            }
+        }
+
+        return BraillePatternType::Note;
+    }
+    case BraillePatternType::Rest: {
+        setNoteDurations(getRestDurations(btp.data.front()));
+        return BraillePatternType::Rest;
+        break;
+    }
+    default: {
         return BraillePatternType::Unrecognized;
     }
-
-    setNoteName(getNoteName(btp.data.front()));
-    setNoteDurations(getNoteDurations(btp.data.front()));
-
-    int cursor = lst.length() - 2;
-
-    if(cursor >= 0) {
-        btp = recognizeBrailleInput(lst.at(cursor));
-        if(btp.type == BraillePatternType::Octave) {
-            int octave = getOctave(btp.data.front());
-            setAddedOctave(octave);
-            cursor--;
-        }
     }
-
-    if(cursor >= 0) {
-        btp = recognizeBrailleInput(lst.at(cursor));
-        if(btp.type == BraillePatternType::Accidental) {
-            AccidentalType acc = getAccidentalType(btp.data.front());
-            setAccidental(acc);
-            cursor--;
-        }
-    }
-
-    return BraillePatternType::Note;
 }
 
 QString BrailleInputState::buffer()

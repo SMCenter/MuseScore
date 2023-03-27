@@ -993,6 +993,16 @@ braille_code * findBrailleCode(std::vector<braille_code *> code_lst, std::string
     return nullptr;
 }
 
+braille_code* findRest(const std::string braille)
+{
+    for (int i=3; i <= 6; i++) {
+        if (braille == Braille_Rests[i]->code) {
+            return Braille_Rests[i];
+        }
+    }
+    return NULL;
+}
+
 braille_code* findNote(const std::string braille)
 {
     for (int i=3; i <= 6; i++) {

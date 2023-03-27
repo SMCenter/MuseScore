@@ -390,7 +390,7 @@ void NotationLiveBraille::setKeys(const QString& sequence)
         }
     } else if(seq == "Space") {
         m_braille_input.resetBuffer();
-    } else if(isBrailleInputMode()) {        
+    } else if(isBrailleInputMode() && !sequence.isEmpty()) {
         QString pattern = parseBrailleKeyInput(sequence);
         if(!pattern.isEmpty()) {
             m_braille_input.insertToBuffer(pattern);
@@ -399,87 +399,94 @@ void NotationLiveBraille::setKeys(const QString& sequence)
         }
         BraillePatternType type = m_braille_input.parseBraille();
         switch(type) {
-            case BraillePatternType::Note: {
-                LOGD() << "input note " << fromNoteName(m_braille_input.noteName());
-                if(m_braille_input.accidental() != mu::notation::AccidentalType::NONE) {
-                    interaction()->noteInput()->setAccidental(m_braille_input.accidental());
-                }
+        case BraillePatternType::Note: {
+            LOGD() << "input note " << fromNoteName(m_braille_input.noteName());
+            if(m_braille_input.accidental() != mu::notation::AccidentalType::NONE) {
+                interaction()->noteInput()->setAccidental(m_braille_input.accidental());
+            }
 
-                DurationType duration = m_braille_input.getCloseDuration();
-                setInputNoteDuration(Duration(duration));
-                LOGD() << "add note " << fromNoteName(m_braille_input.noteName());
-                interaction()->noteInput()->addNote(m_braille_input.noteName(), NoteAddingMode::NextChord);
-                LOGD() << "octave " << m_braille_input.octave() << " added octave " << m_braille_input.addedOctave();
-                if(m_braille_input.addedOctave() != -1) {
-                    if(m_braille_input.addedOctave() < m_braille_input.octave()) {
-                        for(int i = m_braille_input.addedOctave(); i < m_braille_input.octave(); i++){
-                            interaction()->movePitch(MoveDirection::Down, PitchMode::OCTAVE);
-                        }
-                    } else if(m_braille_input.addedOctave() > m_braille_input.octave()) {
-                        for(int i = m_braille_input.octave(); i < m_braille_input.addedOctave(); i++){
-                            interaction()->movePitch(MoveDirection::Up, PitchMode::OCTAVE);
-                        }
+            DurationType duration = m_braille_input.getCloseDuration();
+            setInputNoteDuration(Duration(duration));
+            LOGD() << "add note " << fromNoteName(m_braille_input.noteName());
+            interaction()->noteInput()->addNote(m_braille_input.noteName(), NoteAddingMode::NextChord);
+            LOGD() << "octave " << m_braille_input.octave() << " added octave " << m_braille_input.addedOctave();
+            if(m_braille_input.addedOctave() != -1) {
+                if(m_braille_input.addedOctave() < m_braille_input.octave()) {
+                    for(int i = m_braille_input.addedOctave(); i < m_braille_input.octave(); i++){
+                        interaction()->movePitch(MoveDirection::Down, PitchMode::OCTAVE);
                     }
+                } else if(m_braille_input.addedOctave() > m_braille_input.octave()) {
+                    for(int i = m_braille_input.octave(); i < m_braille_input.addedOctave(); i++){
+                        interaction()->movePitch(MoveDirection::Up, PitchMode::OCTAVE);
+                    }
+                }
 
-                }
-                m_braille_input.reset();
-                break;
             }
-            case BraillePatternType::NoteTie: case BraillePatternType::ChordTie: {
-                LOGD() << "adding tie...";
-                interaction()->noteInput()->addTie();
-                m_braille_input.reset();
-                break;
+            m_braille_input.reset();
+            break;
+        }
+        case BraillePatternType::Rest: {
+            DurationType duration = m_braille_input.getCloseDuration();
+            setInputNoteDuration(Duration(duration));
+            interaction()->putRest(duration);
+            m_braille_input.reset();
+            break;
+        }
+        case BraillePatternType::NoteTie: case BraillePatternType::ChordTie: {
+            LOGD() << "adding tie...";
+            interaction()->noteInput()->addTie();
+            m_braille_input.reset();
+            break;
+        }
+        /*
+        case BraillePatternType::Slur: {
+            LOGD() << "Trying adding slur...";
+            LOGD() << " start: " << current_engraving_item->typeName();
+            if(current_engraving_item->isChordRest()) {
+                LOGD() << "adding slur...";
+                ChordRest* cr = toChordRest(current_engraving_item);
+                Slur * slur = score()->addSlur(cr, NULL, NULL);
+                interaction()->noteInput()->addSlur(slur);
             }
-            /*
-            case BraillePatternType::Slur: {
-                LOGD() << "Trying adding slur...";
-                LOGD() << " start: " << current_engraving_item->typeName();
-                if(current_engraving_item->isChordRest()) {
-                    LOGD() << "adding slur...";
-                    ChordRest* cr = toChordRest(current_engraving_item);
-                    Slur * slur = score()->addSlur(cr, NULL, NULL);
-                    interaction()->noteInput()->addSlur(slur);
-                }
-                m_braille_input.initialize();
-                break;
+            m_braille_input.initialize();
+            break;
+        }
+        */
+        case BraillePatternType::Interval: {
+            BraillePattern btp = recognizeBrailleInput(m_braille_input.buffer());
+            int interval = getInterval(btp.data.front());
+            if(interval != -1) {
+                LOGD() << " add interval " << interval;
+                interaction()->addIntervalToSelectedNotes(interval);
             }
-            */
-            case BraillePatternType::Interval: {
-                BraillePattern btp = recognizeBrailleInput(m_braille_input.buffer());
-                int interval = getInterval(btp.data.front());
-                if(interval != -1) {
-                    LOGD() << " add interval " << interval;
-                    interaction()->addIntervalToSelectedNotes(interval);
-                }
-                m_braille_input.reset();
-                break;
+            m_braille_input.reset();
+            break;
+        }
+        /*
+        case BraillePatternType::LongSlurStart: {
+            break;
+        }
+        case BraillePatternType::LongSlurStop: {
+            break;
+        }
+        case BraillePatternType::InAccord: {
+            // add new voice
+            break;
+        }
+        */
+        default: {
+            if(m_braille_input.buffer() == "G-1") {
+                m_braille_input.setNoteGroup(NoteGroup::Group1);
+                m_braille_input.resetBuffer();
+            } else if(m_braille_input.buffer() == "G-2") {
+                m_braille_input.setNoteGroup(NoteGroup::Group2);
+                m_braille_input.resetBuffer();
+            } else if(m_braille_input.buffer() == "G-3") {
+                m_braille_input.setNoteGroup(NoteGroup::Group3);
+                m_braille_input.resetBuffer();
             }
-            /*
-            case BraillePatternType::LongSlurStart: {
-                break;
-            }
-            case BraillePatternType::LongSlurStop: {
-                break;
-            }
-            case BraillePatternType::InAccord: {
-                // add new voice
-                break;
-            }
-            */
-            default: {                
-                if(m_braille_input.buffer() == "G-1") {
-                    m_braille_input.setNoteGroup(NoteGroup::Group1);
-                    m_braille_input.resetBuffer();
-                } else if(m_braille_input.buffer() == "G-2") {
-                    m_braille_input.setNoteGroup(NoteGroup::Group2);
-                    m_braille_input.resetBuffer();
-                } else if(m_braille_input.buffer() == "G-3") {
-                    m_braille_input.setNoteGroup(NoteGroup::Group3);
-                    m_braille_input.resetBuffer();
-                }
-                break;
-            }
+            break;
+        }
         }
     }
 }

@@ -14,6 +14,7 @@ enum class BraillePatternType
     Accidental,
     Octave,
     Note,
+    Rest,
     Slur,
     LongSlurStart,
     LongSlurStop,
@@ -102,6 +103,7 @@ BraillePattern recognizeBrailleInput(QString pattern);
 
 NoteName getNoteName(const braille_code* code);
 std::vector<DurationType> getNoteDurations(const braille_code* code);
+std::vector<DurationType> getRestDurations(const braille_code* code);
 int getInterval(const braille_code* code);
 bool isNoteName(const braille_code* code);
 QString fromNoteName(NoteName);

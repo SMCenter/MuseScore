@@ -748,6 +748,7 @@ std::string intToBrailleLowerNumbers(std::string txt, bool indicator);
 
 braille_code* findBrailleCode(std::string code, bool partial_match = false);
 braille_code* findNote(const std::string braille);
+braille_code* findRest(const std::string braille);
 braille_code* findOctave(const std::string braille);
 braille_code* findAccidental(const std::string braille);
 braille_code* findFinger(const std::string braille);
