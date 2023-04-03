@@ -3,12 +3,17 @@
 
 #include <string>
 
+namespace mu::notation {
+
 class braille_code {
 public:
     braille_code(std::string t, std::string c);
     ~braille_code();
+    void print();
     std::string tag;
     std::string code;
+    std::string braille;
+    int cells_num;
 };
 
 //In the table below, things added by Haipeng are indicated as this:
@@ -753,5 +758,5 @@ braille_code* findOctave(const std::string braille);
 braille_code* findAccidental(const std::string braille);
 braille_code* findFinger(const std::string braille);
 braille_code* findInterval(const std::string braille);
-
+}
 #endif // BRAILLE_H

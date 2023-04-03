@@ -119,6 +119,8 @@ set(MODULE_SRC
     ${CMAKE_CURRENT_LIST_DIR}/internal/livebraille/braille.h
     ${CMAKE_CURRENT_LIST_DIR}/internal/livebraille/brailleinput.cpp
     ${CMAKE_CURRENT_LIST_DIR}/internal/livebraille/brailleinput.h
+    ${CMAKE_CURRENT_LIST_DIR}/internal/livebraille/brailleinputparser.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/internal/livebraille/brailleinputparser.h
 
     ${CMAKE_CURRENT_LIST_DIR}/view/abstractnotationpaintview.cpp
     ${CMAKE_CURRENT_LIST_DIR}/view/abstractnotationpaintview.h

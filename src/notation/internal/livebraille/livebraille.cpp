@@ -88,7 +88,7 @@
 using namespace mu;
 using namespace mu::engraving;
 
-namespace mu::notation::livebraille {
+namespace mu::notation {
 // Max lyrics num
 #define MAX_LYRICS_NUM                  16
 // Table 1. Page 2. Music Braille Code 2015.

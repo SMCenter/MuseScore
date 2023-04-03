@@ -3,35 +3,9 @@
 
 #include "notationtypes.h"
 #include "braille.h"
+#include "brailleinputparser.h"
 
 namespace mu::notation {
-
-#define MAX_CODE_NUM 20
-
-enum class BraillePatternType
-{
-    Unrecognized,
-    Accidental,
-    Octave,
-    Note,
-    Rest,
-    Slur,
-    LongSlurStart,
-    LongSlurStop,
-    NoteTie,
-    ChordTie,
-    Articulation,
-    Tuplet,
-    Finger,
-    InAccord,
-    Interval
-};
-
-struct BraillePattern
-{
-    BraillePatternType type = BraillePatternType::Unrecognized;
-    std::vector<braille_code *> data;
-};
 
 enum class NoteGroup
 {
@@ -53,7 +27,7 @@ public:
     void insertToBuffer(const QString);
     QString buffer();
 
-    BraillePatternType parseBraille();
+    BieSequencePatternType parseBraille();
 
     AccidentalType accidental();
     NoteName noteName();
@@ -66,6 +40,7 @@ public:
 
     SymbolId articulation();
     int octave();
+    int dots();
     int addedOctave();
     voice_idx_t voice();
     bool slur();
@@ -77,8 +52,9 @@ public:
     void setNoteDurations(const std::vector<DurationType> durations);
     void setArticulation(const SymbolId articulation);
     void setOctave(const int octave);
+    void setDots(const int dots);
     void setAddedOctave(const int octave);
-    void setVoicce(const voice_idx_t voice);
+    void setVoice(const voice_idx_t voice);
     void setSlur(const bool s);
     void setTie(const bool s);
     void setNoteGroup(const NoteGroup g);
@@ -89,6 +65,7 @@ private:
     SymbolId _articulation = SymbolId::noSym;
     int _octave = 4;
     int _added_octave = -1;
+    int _dots = 0;
     voice_idx_t _voice = 0;
     QString _input_buffer;
     int _code_num = 0;
@@ -99,7 +76,6 @@ private:
 };
 
 QString parseBrailleKeyInput(QString keys);
-BraillePattern recognizeBrailleInput(QString pattern);
 
 NoteName getNoteName(const braille_code* code);
 std::vector<DurationType> getNoteDurations(const braille_code* code);
@@ -110,5 +86,7 @@ QString fromNoteName(NoteName);
 AccidentalType getAccidentalType(const braille_code* code);
 SymbolId getArticulation(const braille_code* code);
 int getOctave(const braille_code* code);
+int getOctaveDiff(NoteName source, NoteName dest);
+
 }
 #endif // BRAILLEINPUT_H

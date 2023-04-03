@@ -16,24 +16,35 @@ class LiveBraillePreferencesModel : public QObject
         bool liveBrailleStatus READ liveBrailleStatus WRITE setLiveBrailleStatus NOTIFY liveBrailleStatusChanged)
     Q_PROPERTY(
         QString liveBrailleTable READ liveBrailleTable WRITE setLiveBrailleTable NOTIFY liveBrailleTableChanged)
+    Q_PROPERTY(
+        QString intervalDirection READ intervalDirection WRITE setIntervalDirection NOTIFY intervalDirectionChanged)
 
 public:
     explicit LiveBraillePreferencesModel(QObject* parent = nullptr);
 
     Q_INVOKABLE void load();
     Q_INVOKABLE QVariantList tables() const;
+    Q_INVOKABLE QVariantList directions() const;
 
     bool liveBrailleStatus() const;
     QString liveBrailleTable() const;
+    QString intervalDirection() const;
 
 public slots:
     void setLiveBrailleStatus(bool value);
     void setLiveBrailleTable(QString table);
+    void setIntervalDirection(QString direction);
 
 signals:
     void liveBrailleStatusChanged(bool value);
     void liveBrailleTableChanged(QString value);
+    void intervalDirectionChanged(QString value);
 private:
+    std::vector<QString> m_interval_directions = {
+        "Auto",
+        "Up",
+        "Down"
+    };
     std::vector<QString> m_table_list = {
         "Afrikaans uncontracted braille [afr-za-g1.ctb]",
         "Afrikaans contracted braille [afr-za-g2.ctb]",

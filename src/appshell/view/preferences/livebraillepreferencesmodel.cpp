@@ -56,6 +56,11 @@ QString LiveBraillePreferencesModel::liveBrailleTable() const
     return notationConfiguration()->liveBrailleTable();
 }
 
+QString LiveBraillePreferencesModel::intervalDirection() const
+{
+    return notationConfiguration()->intervalDirection();
+}
+
 void LiveBraillePreferencesModel::setLiveBrailleTable(QString table)
 {
     if (table == liveBrailleTable()) {
@@ -66,11 +71,31 @@ void LiveBraillePreferencesModel::setLiveBrailleTable(QString table)
     emit liveBrailleTableChanged(table);
 }
 
+void LiveBraillePreferencesModel::setIntervalDirection(QString direction)
+{
+    if (direction == intervalDirection()) {
+        return;
+    }
+
+    notationConfiguration()->setIntervalDirection(direction);
+    emit intervalDirectionChanged(direction);
+}
+
 QVariantList LiveBraillePreferencesModel::tables() const
 {
     QVariantList result;
 
     for (auto val : m_table_list) {
+        result << val;
+    }
+
+    return result;
+}
+QVariantList LiveBraillePreferencesModel::directions() const
+{
+    QVariantList result;
+
+    for (auto val : m_interval_directions) {
         result << val;
     }
 

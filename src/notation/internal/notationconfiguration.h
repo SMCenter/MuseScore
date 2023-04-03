@@ -194,6 +194,10 @@ public:
     async::Notification liveBrailleTableChanged() const override;
     QString liveBrailleTable() const override;
     void setLiveBrailleTable(const QString table) override;
+
+    async::Notification intervalDirectionChanged() const override;
+    QString intervalDirection() const override;
+    void setIntervalDirection(const QString) override;
 private:
     io::path_t firstScoreOrderListPath() const;
     void setFirstScoreOrderListPath(const io::path_t& path);
@@ -213,6 +217,7 @@ private:
 
     async::Notification m_liveBrailleStatusChanged;
     async::Notification m_liveBrailleTableChanged;
+    async::Notification m_intervalDirectionChanged;
 };
 }
 

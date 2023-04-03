@@ -38,10 +38,12 @@ public:
     virtual ValCh<int> currentItemPositionEnd() const = 0;
     virtual ValCh<std::string> keys() const = 0;
     virtual ValCh<bool> enabled() const = 0;
+    virtual ValCh<QString> intervalDirection() const = 0;
     virtual ValCh<int> mode() const = 0;
     virtual ValCh<std::string> cursorColor() const = 0;
 
-    virtual void setEnabled(bool enabled) = 0;
+    virtual void setEnabled(const bool enabled) = 0;
+    virtual void setIntervalDirection(const QString direction) = 0;
 
     virtual void setCursorPosition(const int pos) = 0;
     virtual void setCurrentItemPosition(const int, const int) = 0;

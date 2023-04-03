@@ -3,18 +3,31 @@
 #include <iostream>
 
 #include "braille.h"
+#include "log.h"
+
+namespace mu::notation {
 
 std::vector<braille_code *> master_braille_code_list;
 
-braille_code::braille_code(std::string t, std::string c) {
+braille_code::braille_code(std::string t, std::string c)
+{
     tag = t;
     code = c;
+    braille = translate2Braille(code);
+    cells_num = braille.length();
     master_braille_code_list.push_back(this);
 }
 
-braille_code::~braille_code() {
+braille_code::~braille_code()
+{
     tag.clear();
     code.clear();
+    braille.clear();
+}
+
+void braille_code::print()
+{
+    LOGD() << " Braille code " << tag << " " << code << " " << braille << " " << cells_num;
 }
 
 braille_code Braille_CapIndicator = braille_code("CapIndicator", "6");
@@ -1087,4 +1100,5 @@ braille_code* findInterval(const std::string braille)
         }
     }
     return NULL;
+}
 }

@@ -81,10 +81,12 @@ public:
     ValCh<int> currentItemPositionEnd() const override;
     ValCh<std::string> keys() const override;
     ValCh<bool> enabled() const override;
+    ValCh<QString> intervalDirection() const override;
     ValCh<int> mode() const override;
     ValCh<std::string> cursorColor() const override;
 
-    void setEnabled(bool enabled) override;
+    void setEnabled(const bool enabled) override;
+    void setIntervalDirection(const QString direction) override;
 
     void setCursorPosition(const int pos) override;
     void setCurrentItemPosition(const int, const int) override;
@@ -100,7 +102,7 @@ public:
     INotationPtr notation();
     INotationInteractionPtr interaction();
 
-    livebraille::BrailleEngravingItemList* brailleEngravingItemList();
+    BrailleEngravingItemList* brailleEngravingItemList();
     QString getBrailleStr();
 
 private:
@@ -110,7 +112,7 @@ private:
     Notation* m_notation;
     Measure* current_measure = NULL;
     EngravingItem* current_engraving_item = NULL;
-    livebraille::BrailleEngravingItem* current_bei = NULL;
+    BrailleEngravingItem* current_bei = NULL;
 
     void setLiveBrailleInfo(const QString& info);
     void setCurrentEngravingItem(EngravingItem* el, bool select);
@@ -129,9 +131,10 @@ private:
     ValCh<std::string> m_keys;
     ValCh<bool> m_enabled;
     ValCh<int> m_mode;
+    ValCh<QString> m_intervalDirection;
     ValCh<std::string> m_cursorColor;
 
-    livebraille::BrailleEngravingItemList m_beil;
+    BrailleEngravingItemList m_beil;
     async::Notification m_selectionChanged;
 };
 }

@@ -681,7 +681,7 @@ enum class LiveBrailleMode
 {
     Undefined = 0,
     Navigation,
-    BrailleInput,    
+    BrailleInput,
 };
 }
 

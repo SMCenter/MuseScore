@@ -52,10 +52,12 @@ PreferencesPage {
 
         SeparatorLine { }
 
-        LiveBrailleTableSection {
-            id: liveBrailleTable
+        LiveBrailleAdvancedSection {
+            id: liveBrailleAdvanced
             tables: liveBrailleModel.tables()
+            directions: liveBrailleModel.directions()
             liveBrailleTable: liveBrailleModel.liveBrailleTable
+            intervalDirection: liveBrailleModel.intervalDirection
 
             navigation.section: root.navigationSection
             navigation.order: root.navigationOrderStart + 2
@@ -66,11 +68,16 @@ PreferencesPage {
                 liveBrailleModel.liveBrailleTable = table
             }
 
+            onIntervalDirectionChangeRequested: function(direction) {
+                liveBrailleModel.intervalDirection = direction
+            }
+
             onFocusChanged: {
                 if (activeFocus) {
                     root.ensureContentVisibleRequested(Qt.rect(x, y, width, height))
                 }
             }
         }
+
     }
 }

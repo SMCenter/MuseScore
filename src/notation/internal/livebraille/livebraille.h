@@ -31,7 +31,7 @@ class Score;
 class Measure;
 }
 
-namespace mu::notation::livebraille {
+namespace mu::notation {
 class BrailleEngravingItemList;
 class LiveBrailleImpl;
 class LiveBraille

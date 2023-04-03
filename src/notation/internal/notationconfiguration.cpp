@@ -90,6 +90,7 @@ static const Settings::Key STYLE_FILE_IMPORT_PATH_KEY(module_name, "import/style
 
 static const Settings::Key LIVE_BRAILLE_STATUS(module_name, "score/livebraille/status");
 static const Settings::Key LIVE_BRAILLE_TABLE(module_name, "score/livebraille/table");
+static const Settings::Key LIVE_BRAILLE_INTERVAL_DIRECTION(module_name, "score/livebraille/intervalDirection");
 
 static constexpr int DEFAULT_GRID_SIZE_SPATIUM = 2;
 
@@ -212,6 +213,10 @@ void NotationConfiguration::init()
     settings()->setDefaultValue(LIVE_BRAILLE_TABLE, Val("default"));
     settings()->valueChanged(LIVE_BRAILLE_TABLE).onReceive(this, [this](const Val&) {
         m_liveBrailleTableChanged.notify();
+    });
+    settings()->setDefaultValue(LIVE_BRAILLE_INTERVAL_DIRECTION, Val("Auto"));
+    settings()->valueChanged(LIVE_BRAILLE_INTERVAL_DIRECTION).onReceive(this, [this](const Val&) {
+        m_intervalDirectionChanged.notify();
     });
 
     engravingConfiguration()->scoreInversionChanged().onNotify(this, [this]() {
@@ -882,4 +887,19 @@ QString NotationConfiguration::liveBrailleTable() const
 void NotationConfiguration::setLiveBrailleTable(const QString tabl)
 {
     settings()->setSharedValue(LIVE_BRAILLE_TABLE, Val(tabl));
+}
+
+async::Notification NotationConfiguration::intervalDirectionChanged() const
+{
+    return m_intervalDirectionChanged;
+}
+
+QString NotationConfiguration::intervalDirection() const
+{
+    return settings()->value(LIVE_BRAILLE_INTERVAL_DIRECTION).toQString();
+}
+
+void NotationConfiguration::setIntervalDirection(const QString direction)
+{
+    settings()->setSharedValue(LIVE_BRAILLE_INTERVAL_DIRECTION, Val(direction));
 }

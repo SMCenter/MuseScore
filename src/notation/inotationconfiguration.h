@@ -190,6 +190,10 @@ public:
     virtual async::Notification liveBrailleTableChanged() const = 0;
     virtual QString liveBrailleTable() const = 0;
     virtual void setLiveBrailleTable(const QString table) = 0;
+
+    virtual async::Notification intervalDirectionChanged() const = 0;
+    virtual QString intervalDirection() const = 0;
+    virtual void setIntervalDirection(const QString direction) = 0;
 };
 }
 

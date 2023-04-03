@@ -108,6 +108,6 @@
         <file>resources/LoadingScreen.svg</file>
         <file>qml/Preferences/LiveBraillePreferencesPage.qml</file>
         <file>qml/Preferences/internal/LiveBrailleSection.qml</file>
-        <file>qml/Preferences/internal/LiveBrailleTableSection.qml</file>
+        <file>qml/Preferences/internal/LiveBrailleAdvancedSection.qml</file>
     </qresource>
 </RCC>
