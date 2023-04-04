@@ -15,6 +15,12 @@ enum class NoteGroup
     Group3  // 256th, 512th, 1024th, 2048th
 };
 
+enum class IntervalDirection
+{
+    Up,
+    Down
+};
+
 class BrailleInputState
 {
 public:
@@ -27,7 +33,7 @@ public:
     void insertToBuffer(const QString);
     QString buffer();
 
-    BieSequencePatternType parseBraille();
+    BieSequencePatternType parseBraille(IntervalDirection direction);
 
     AccidentalType accidental();
     NoteName noteName();
@@ -44,10 +50,10 @@ public:
     int addedOctave();
     voice_idx_t voice();
     bool slur();
-    bool tie();    
+    bool tie();            
 
     void setAccidental(const AccidentalType accidental);
-    void setNoteName(const NoteName notename);
+    void setNoteName(const NoteName notename, const bool chord_base = true);
     void setCurrentDuration(const DurationType duration);
     void setNoteDurations(const std::vector<DurationType> durations);
     void setArticulation(const SymbolId articulation);
@@ -59,9 +65,14 @@ public:
     void setTie(const bool s);
     void setNoteGroup(const NoteGroup g);
 
+    std::vector<int> intervals();
+    void clearIntervals();
+    void addInterval(const int interval);
+
 private:
     AccidentalType _accidental = AccidentalType::NONE;
     NoteName _note_name = NoteName::C;
+    NoteName _chordbase_note_name = NoteName::C;
     SymbolId _articulation = SymbolId::noSym;
     int _octave = 4;
     int _added_octave = -1;
@@ -73,6 +84,8 @@ private:
     DurationType _current_duration;
     std::vector<DurationType> _note_durations;
     NoteGroup _note_group = NoteGroup::Undefined;
+
+    std::vector<int> _intervals;
 };
 
 QString parseBrailleKeyInput(QString keys);
@@ -87,6 +100,8 @@ AccidentalType getAccidentalType(const braille_code* code);
 SymbolId getArticulation(const braille_code* code);
 int getOctave(const braille_code* code);
 int getOctaveDiff(NoteName source, NoteName dest);
+int getOctaveDiff(IntervalDirection direction, NoteName source, int interval);
+NoteName getNoteNameForInterval(IntervalDirection direction, NoteName source, int interval);
 
 }
 #endif // BRAILLEINPUT_H

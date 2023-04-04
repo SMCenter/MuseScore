@@ -118,7 +118,7 @@ int getInterval(const braille_code* code)
     if(c < '2' || c > '8') {
         return -1;
     } else {
-        return c - '1';
+        return c - '0';
     }
 }
 
@@ -240,6 +240,47 @@ int getOctaveDiff(NoteName source, NoteName dest)
     }
 }
 
+int getOctaveDiff(IntervalDirection direction, NoteName source, int interval)
+{
+    int diff;
+    switch(direction) {
+    case IntervalDirection::Up:
+        diff = (interval + (int)source - 1) / 7;
+        break;
+    case IntervalDirection::Down:
+        int src = (int) source;
+        diff = 0;
+        while(src < interval + 1) {
+            src += 7;
+            diff--;
+        }
+        break;
+    }
+    LOGD() << diff;
+    return diff;
+}
+
+NoteName getNoteNameForInterval(IntervalDirection direction, NoteName source, int interval)
+{
+    NoteName note;
+    switch (direction) {
+    case IntervalDirection::Up:
+        LOGD() << "Direction UP " << fromNoteName(source) << " " << interval;
+        note = (NoteName)(((int) source + interval - 1) % 7);
+        break;
+    default:
+        LOGD() << "Direction DOWN " << fromNoteName(source) << " " << interval;
+        int src = (int) source;
+        while(src < interval) {
+            src += 7;
+        }
+        note = (NoteName)((src - interval) % 7 + 1);
+        break;
+    }
+    LOGD() << "Note name " << fromNoteName(note);
+    return note;
+}
+
 BrailleInputState::BrailleInputState()
 {
     initialize();
@@ -263,6 +304,7 @@ void BrailleInputState::initialize()
     _code_num = 0;
     _slur = _tie = false;
     _note_group = NoteGroup::Group1;
+    _intervals.clear();
 }
 
 void BrailleInputState::reset()
@@ -294,8 +336,8 @@ void BrailleInputState::insertToBuffer(const QString code)
     }
 }
 
-BieSequencePatternType BrailleInputState::parseBraille()
-{
+BieSequencePatternType BrailleInputState::parseBraille(IntervalDirection direction)
+{    
     std::string braille = translate2Braille(_input_buffer.toStdString());
     BieSequencePattern* pattern = BieRecognize(braille);
 
@@ -305,6 +347,7 @@ BieSequencePatternType BrailleInputState::parseBraille()
 
     switch(pattern->type()) {
     case BieSequencePatternType::Note: {
+        clearIntervals();
         braille_code* code = pattern->res("note");
 
         NoteName note_name = getNoteName(code);
@@ -342,6 +385,28 @@ BieSequencePatternType BrailleInputState::parseBraille()
         break;
     }
     case BieSequencePatternType::Interval: {
+        //int last_interval = intervals().empty() ? -1 : intervals().back();
+        braille_code* code = pattern->res("interval");
+        int interval = getInterval(code);
+        int octave_diff = getOctaveDiff(direction, noteName(), interval);
+
+        addInterval(interval);
+
+        NoteName note_name = getNoteNameForInterval(direction, _chordbase_note_name, interval);
+        setNoteName(note_name, false);
+
+        code = pattern->res("octave");
+        if(code != NULL) {
+            setAddedOctave(getOctave(code));
+        } else if(octave_diff != 0){
+            setAddedOctave(octave() + octave_diff);
+        }
+
+        code = pattern->res("accidental");
+        if(code != NULL) {
+            setAccidental(getAccidentalType(code));
+        }
+
         break;
     }
     default: {
@@ -458,9 +523,12 @@ void BrailleInputState::setAccidental(const AccidentalType accidental)
     _accidental = accidental;
 }
 
-void BrailleInputState::setNoteName(const NoteName notename)
+void BrailleInputState::setNoteName(const NoteName notename, const bool chord_base)
 {
     _note_name = notename;
+    if(chord_base) {
+        _chordbase_note_name = notename;
+    }
 }
 
 void BrailleInputState::setNoteGroup(const NoteGroup notegroup)
@@ -512,5 +580,18 @@ void BrailleInputState::setSlur(const bool s)
 void BrailleInputState::setTie(const bool s)
 {
     _tie = s;
+}
+
+std::vector<int> BrailleInputState::intervals()
+{
+    return _intervals;
+}
+void BrailleInputState::clearIntervals()
+{
+    _intervals.clear();
+}
+void BrailleInputState::addInterval(const int interval)
+{
+    _intervals.push_back(interval);
 }
 }

@@ -120,6 +120,8 @@ private:
     void updateTableForLyricsFromPreferences();
     io::path_t tablesDefaultDirPath() const;
 
+    IntervalDirection getIntervalDirection();
+
     BrailleInputState m_braille_input;
 
     const IGetScore* m_getScore = nullptr;

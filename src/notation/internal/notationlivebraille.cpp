@@ -405,16 +405,18 @@ void NotationLiveBraille::setKeys(const QString& sequence)
     } else if(seq == "Space") {
         std::string braille = translate2Braille(m_braille_input.buffer().toStdString());
         BieRecognize(braille);
-        BieSequencePatternType type = m_braille_input.parseBraille();
+        BieSequencePatternType type = m_braille_input.parseBraille(getIntervalDirection());
         switch(type) {
         case BieSequencePatternType::Note: {
+            LOGD() << "NOTE:";
             LOGD() << "input note " << fromNoteName(m_braille_input.noteName());
             if(m_braille_input.accidental() != mu::notation::AccidentalType::NONE) {
                 interaction()->noteInput()->setAccidental(m_braille_input.accidental());
             }
 
             DurationType duration = m_braille_input.getCloseDuration();
-            setInputNoteDuration(Duration(duration));
+            LOGD() << "add duration " << (int)duration;
+            setInputNoteDuration(Duration(duration));            
             LOGD() << "add note " << fromNoteName(m_braille_input.noteName());
             interaction()->noteInput()->addNote(m_braille_input.noteName(), NoteAddingMode::NextChord);
             LOGD() << "octave " << m_braille_input.octave() << " added octave " << m_braille_input.addedOctave();
@@ -428,10 +430,10 @@ void NotationLiveBraille::setKeys(const QString& sequence)
                         interaction()->movePitch(MoveDirection::Up, PitchMode::OCTAVE);
                     }
                 }
+                m_braille_input.setOctave(m_braille_input.addedOctave());
             }
-
             if(m_braille_input.dots() == 1) {
-                interaction()->increaseDecreaseDuration(1, true);
+                interaction()->increaseDecreaseDuration(-1, true);
             }
             break;
         }
@@ -445,12 +447,28 @@ void NotationLiveBraille::setKeys(const QString& sequence)
             break;
         }        
         case BieSequencePatternType::Interval: {
-            //BraillePattern btp = recognizeBrailleInput(m_braille_input.buffer());
-            //int interval = getInterval(btp.data.front());
-            //if(interval != -1) {
-            //    LOGD() << " add interval " << interval;
-            //    interaction()->addIntervalToSelectedNotes(interval);
-            //}
+            LOGD() << "INTERVAL:";
+            LOGD() << "input note " << fromNoteName(m_braille_input.noteName());
+            if(m_braille_input.accidental() != mu::notation::AccidentalType::NONE) {
+                interaction()->noteInput()->setAccidental(m_braille_input.accidental());
+            }
+
+            DurationType duration = m_braille_input.getCloseDuration();
+            setInputNoteDuration(Duration(duration));
+            LOGD() << "add note " << fromNoteName(m_braille_input.noteName());
+            interaction()->noteInput()->addNote(m_braille_input.noteName(), NoteAddingMode::CurrentChord);
+            LOGD() << "octave " << m_braille_input.octave() << " added octave " << m_braille_input.addedOctave();
+            if(m_braille_input.addedOctave() != -1) {
+                if(m_braille_input.addedOctave() < m_braille_input.octave()) {
+                    for(int i = m_braille_input.addedOctave(); i < m_braille_input.octave(); i++){
+                        interaction()->movePitch(MoveDirection::Down, PitchMode::OCTAVE);
+                    }
+                } else if(m_braille_input.addedOctave() > m_braille_input.octave()) {
+                    for(int i = m_braille_input.octave(); i < m_braille_input.addedOctave(); i++){
+                        interaction()->movePitch(MoveDirection::Up, PitchMode::OCTAVE);
+                    }
+                }
+            }
             break;
         }
         /*
@@ -574,5 +592,17 @@ void NotationLiveBraille::setCurrentEngravingItem(EngravingItem* e, bool select)
             interaction()->select({e});
         }
     }
+}
+
+IntervalDirection NotationLiveBraille::getIntervalDirection()
+{
+    if(m_intervalDirection.val == "Up")
+        return IntervalDirection::Up;
+    else if(m_intervalDirection.val == "Down")
+        return IntervalDirection::Down;
+    else if(m_intervalDirection.val == "Auto")
+        return IntervalDirection::Up;
+
+    return IntervalDirection::Up;
 }
 
