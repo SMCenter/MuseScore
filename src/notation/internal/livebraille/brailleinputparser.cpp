@@ -26,8 +26,8 @@ static BiePattern pattern_notes ={"note",
 static BiePattern pattern_dot = {"dot", {&Braille_Dot}};
 static BiePattern pattern_tie = {"tie", {&Braille_NoteTie}};
 static BiePattern pattern_note_slur = {"note-slur", {&Braille_NoteSlur}};
-static BiePattern pattern_slur_start = {"slur-start", {&Braille_LongSlurOpenBracket}};
-static BiePattern pattern_slur_stop = {"slur-stop", {&Braille_LongSlurCloseBracket}};
+static BiePattern pattern_slur_start = {"long-slur-start", {&Braille_LongSlurOpenBracket}};
+static BiePattern pattern_slur_stop = {"long-slur-stop", {&Braille_LongSlurCloseBracket}};
 
 static BiePattern pattern_rests ={"rest",
     {&Braille_RestWhole, &Braille_RestHalf, &Braille_RestQuarter, &Braille_Rest8th}};
@@ -151,9 +151,9 @@ BieSequencePattern::BieSequencePattern(BieSequencePatternType t, std::string seq
                 pattern = &pattern_tie;
             } else if(key == "note-slur") {
                 pattern = &pattern_note_slur;
-            } else if(key == "slur-start") {
+            } else if(key == "long-slur-start") {
                 pattern = &pattern_slur_start;
-            } else if(key == "slur-stop") {
+            } else if(key == "long-slur-stop") {
                 pattern = &pattern_slur_stop;
             } else if(key == "rest") {
                 pattern = &pattern_rests;
@@ -201,14 +201,14 @@ bool BieSequencePattern::recognize(std::string braille)
     size_t cursor = 0;
 
     while(cursor < braille.length()) {
-        //LOGD() << "cursor: " << cursor;
+        LOGD() << "cursor: " << cursor;
         bool match = false;
-        for(auto code : patterns[pos].codes) {
-            code->print();
+        for(auto code : patterns[pos].codes) {            
             int len = code->cells_num;
             if(cursor + len <= braille.length()) {
                 std::string bxt = braille.substr(cursor, len);
                 if(bxt == code->braille) {
+                    code->print();
                     match = true;
                     _res[patterns[pos].name] = code;
                     pos++;
@@ -247,13 +247,13 @@ bool BieSequencePattern::valid()
 }
 
 BieSequencePattern* BieRecognize(std::string braille) {
-    static std::string note_input_seq = "{[accidental][octave](note)[dot][fingering][note-slur][slur-start][slur-end][tie]}";
+    static std::string note_input_seq = "{[long-slur-start][accidental][octave](note)[dot][fingering][note-slur][long-slur-stop][tie]}";
     static BieSequencePattern bie_note_input(BieSequencePatternType::Note, note_input_seq);
 
     static std::string rest_input_seq = "{(rest)[dot][slur]}";
     static BieSequencePattern bie_rest_input(BieSequencePatternType::Rest, rest_input_seq);
 
-    static std::string interval_input_seq = "{[accidental][octave](interval)[fingering][slur-start][slur-end][tie]}";
+    static std::string interval_input_seq = "{[accidental][octave](interval)[fingering][tie]}";
     static BieSequencePattern bie_interval_input(BieSequencePatternType::Interval, interval_input_seq);
 
     static std::string accord_seq = "{(accord)}";

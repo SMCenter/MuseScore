@@ -49,7 +49,9 @@ public:
     int dots();
     int addedOctave();
     voice_idx_t voice();
-    bool slur();
+    bool noteSlur();
+    bool longSlurStart();
+    bool longSlurStop();
     bool tie();
 
     void setAccidental(const AccidentalType accidental);
@@ -74,9 +76,14 @@ public:
     void clearTie();
 
     void setNoteSlur(const bool s);
+    void setLongSlurStart(const bool s);
+    void setLongSlurStop(const bool s);
     Note * slurStartNote();
+    Note * longSlurStartNote();
     void setSlurStartNote(Note *);
+    void setLongSlurStartNote(Note *);
     void clearSlur();
+    void clearLongSlur();
 
 private:
     AccidentalType _accidental = AccidentalType::NONE;
@@ -89,14 +96,19 @@ private:
     voice_idx_t _voice = 0;
     QString _input_buffer;
     int _code_num = 0;
-    bool _slur, _tie;
+
     DurationType _current_duration;
     std::vector<DurationType> _note_durations;
     NoteGroup _note_group = NoteGroup::Undefined;
 
     std::vector<int> _intervals;
+
+    bool _tie;
     Note * _tie_start_note =  NULL;
+
+    bool _note_slur, _long_slur_start, _long_slur_stop;
     Note * _slur_start_note =  NULL;
+    Note * _long_slur_start_note =  NULL;
 };
 
 QString parseBrailleKeyInput(QString keys);

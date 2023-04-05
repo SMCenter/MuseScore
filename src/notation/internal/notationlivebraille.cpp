@@ -463,7 +463,7 @@ void NotationLiveBraille::setKeys(const QString& sequence)
                 addTie();
                 brailleInput()->clearTie();
             }
-            if(brailleInput()->slur()) {
+            if(brailleInput()->noteSlur()) {
                 if(brailleInput()->slurStartNote() == NULL) {
                     if(currentEngravingItem() != NULL && currentEngravingItem()->isNote()) {
                         Note* note = toNote(currentEngravingItem());
@@ -473,6 +473,22 @@ void NotationLiveBraille::setKeys(const QString& sequence)
             } else if(brailleInput()->slurStartNote() != NULL) {
                 addSlur();
                 brailleInput()->clearSlur();
+            }
+
+            if(brailleInput()->longSlurStart()) {
+                if(brailleInput()->longSlurStartNote() == NULL) {
+                    if(currentEngravingItem() != NULL && currentEngravingItem()->isNote()) {
+                        Note* note = toNote(currentEngravingItem());
+                        brailleInput()->setLongSlurStartNote(note);
+                    }
+                }
+            }
+
+            if(brailleInput()->longSlurStop()) {
+                if(brailleInput()->longSlurStartNote() != NULL) {
+                    addLongSlur();
+                    brailleInput()->clearLongSlur();
+                }
             }
             break;
         }
@@ -563,8 +579,91 @@ bool NotationLiveBraille::addSlur()
     LOGD() << "adding slur...";
     if(brailleInput()->slurStartNote() != NULL
        && currentEngravingItem() != NULL && currentEngravingItem()->isNote()) {
-        return true;
+        Note* note1 = brailleInput()->slurStartNote();
+        Note* note2 = toNote(currentEngravingItem());
+
+        if(note1->parent()->isChordRest() && note2->parent()->isChordRest()) {
+            LOGD() << "add slur";
+            ChordRest* firstChordRest = toChordRest(note1->parent());
+            ChordRest* secondChordRest = toChordRest(note2->parent());
+
+            score()->startCmd();
+
+            Slur* slur = Factory::createSlur(firstChordRest->measure()->system());
+            slur->setScore(firstChordRest->score());
+            slur->setTick(firstChordRest->tick());
+            slur->setTick2(secondChordRest->tick());
+            slur->setTrack(firstChordRest->track());
+            if (secondChordRest->staff()->part() == firstChordRest->staff()->part()
+                && !secondChordRest->staff()->isLinked(firstChordRest->staff())) {
+                slur->setTrack2(secondChordRest->track());
+            } else {
+                slur->setTrack2(firstChordRest->track());
+            }
+            slur->setStartElement(firstChordRest);
+            slur->setEndElement(secondChordRest);
+
+            firstChordRest->score()->undoAddElement(slur);
+            SlurSegment* ss = new SlurSegment(firstChordRest->score()->dummy()->system());
+            ss->setSpannerSegmentType(SpannerSegmentType::SINGLE);
+            if (firstChordRest == secondChordRest) {
+                ss->setSlurOffset(Grip::END, PointF(3.0 * firstChordRest->score()->spatium(), 0.0));
+            }
+            slur->add(ss);
+
+            score()->endCmd();
+            return true;
+        }
+        return false;
    } else {
+        LOGD() << "no adding";
+        return false;
+   }
+}
+
+bool NotationLiveBraille::addLongSlur()
+{
+    LOGD() << "adding long slur...";
+    if(brailleInput()->longSlurStartNote() != NULL
+       && currentEngravingItem() != NULL && currentEngravingItem()->isNote()) {
+        Note* note1 = brailleInput()->longSlurStartNote();
+        Note* note2 = toNote(currentEngravingItem());
+
+        if(note1->parent()->isChordRest() && note2->parent()->isChordRest()) {
+            LOGD() << "add long slur";
+            ChordRest* firstChordRest = toChordRest(note1->parent());
+            ChordRest* secondChordRest = toChordRest(note2->parent());
+
+            score()->startCmd();
+
+            Slur* slur = Factory::createSlur(firstChordRest->measure()->system());
+            slur->setScore(firstChordRest->score());
+            slur->setTick(firstChordRest->tick());
+            slur->setTick2(secondChordRest->tick());
+            slur->setTrack(firstChordRest->track());
+            if (secondChordRest->staff()->part() == firstChordRest->staff()->part()
+                && !secondChordRest->staff()->isLinked(firstChordRest->staff())) {
+                slur->setTrack2(secondChordRest->track());
+            } else {
+                slur->setTrack2(firstChordRest->track());
+            }
+            slur->setStartElement(firstChordRest);
+            slur->setEndElement(secondChordRest);
+
+            firstChordRest->score()->undoAddElement(slur);
+            SlurSegment* ss = new SlurSegment(firstChordRest->score()->dummy()->system());
+            ss->setSpannerSegmentType(SpannerSegmentType::SINGLE);
+            if (firstChordRest == secondChordRest) {
+                ss->setSlurOffset(Grip::END, PointF(3.0 * firstChordRest->score()->spatium(), 0.0));
+            }
+            slur->add(ss);
+
+            score()->endCmd();
+            return true;
+        }
+        return false;
+   } else {
+        LOGD() << "no adding";
         return false;
    }
 }

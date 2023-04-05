@@ -302,7 +302,7 @@ void BrailleInputState::initialize()
     _dots = 0;
     _input_buffer.clear();
     _code_num = 0;
-    _slur = _tie = false;
+    _note_slur = _long_slur_start = _long_slur_stop = _tie = false;
     _note_group = NoteGroup::Group1;
     _intervals.clear();
 }
@@ -315,7 +315,7 @@ void BrailleInputState::reset()
     _dots = 0;
     _input_buffer.clear();
     _code_num = 0;
-    _slur = _tie = false;
+    _note_slur = _long_slur_start = _long_slur_stop = _tie = false;
     _added_octave = -1;
 }
 
@@ -381,6 +381,16 @@ BieSequencePatternType BrailleInputState::parseBraille(IntervalDirection directi
         code = pattern->res("note-slur");
         if(code != NULL) {
             setNoteSlur(true);
+        }
+
+        code = pattern->res("long-slur-start");
+        if(code != NULL) {
+            setLongSlurStart(true);
+        }
+
+        code = pattern->res("long-slur-stop");
+        if(code != NULL) {
+            setLongSlurStop(true);
         }
         break;
     }
@@ -572,11 +582,6 @@ void BrailleInputState::setVoice(const voice_idx_t voice)
     _voice = voice;
 }
 
-void BrailleInputState::setNoteSlur(const bool s)
-{
-    _slur = s;
-}
-
 std::vector<int> BrailleInputState::intervals()
 {
     return _intervals;
@@ -615,9 +620,34 @@ void BrailleInputState::clearTie()
     _tie_start_note = NULL;
 }
 
-bool BrailleInputState::slur()
+void BrailleInputState::setNoteSlur(const bool s)
 {
-    return _slur;
+    _note_slur = s;
+}
+
+void BrailleInputState::setLongSlurStart(const bool s)
+{
+    _long_slur_start = s;
+}
+
+void BrailleInputState::setLongSlurStop(const bool s)
+{
+    _long_slur_stop = s;
+}
+
+bool BrailleInputState::noteSlur()
+{
+    return _note_slur;
+}
+
+bool BrailleInputState::longSlurStart()
+{
+    return _long_slur_start;
+}
+
+bool BrailleInputState::longSlurStop()
+{
+    return _long_slur_stop;
 }
 
 Note* BrailleInputState::slurStartNote()
@@ -625,14 +655,29 @@ Note* BrailleInputState::slurStartNote()
     return _slur_start_note;
 }
 
+Note* BrailleInputState::longSlurStartNote()
+{
+    return _long_slur_start_note;
+}
+
 void BrailleInputState::setSlurStartNote(Note *note)
 {
     _slur_start_note = note;
 }
 
+void BrailleInputState::setLongSlurStartNote(Note *note)
+{
+    _long_slur_start_note = note;
+}
+
 void BrailleInputState::clearSlur()
 {
     _slur_start_note = NULL;
+}
+
+void BrailleInputState::clearLongSlur()
+{
+    _long_slur_start_note = NULL;
 }
 
 }

@@ -67,6 +67,7 @@ public:
     bool addSlurEnd();
     bool addTie();
     bool addSlur();
+    bool addLongSlur();
     bool addTuplet(const mu::notation::TupletOptions& options);
 
     bool incDuration();
