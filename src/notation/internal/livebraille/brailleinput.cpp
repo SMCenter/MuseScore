@@ -228,12 +228,12 @@ int getOctave(const braille_code* code)
 
 int getOctaveDiff(NoteName source, NoteName dest)
 // 0: same octave, -1: prev octave, 1: next octave
-{
+{    
     if(dest > source) {
         int diff = (int)dest - (int)source + 1;
         return diff >= 6 ? -1 : 0;
     } else  if(dest < source) {
-        int diff = (int)source - (int)dest + 1;
+        int diff = (int)source - (int)dest + 1;        
         return diff >= 6 ? +1 : 0;
     } else {
         return 0;
@@ -250,7 +250,7 @@ int getOctaveDiff(IntervalDirection direction, NoteName source, int interval)
     case IntervalDirection::Down:
         int src = (int) source;
         diff = 0;
-        while(src < interval + 1) {
+        while(src < interval) {
             src += 7;
             diff--;
         }
@@ -310,7 +310,7 @@ void BrailleInputState::initialize()
 void BrailleInputState::reset()
 {
     _accidental = AccidentalType::NONE;
-    _note_name = NoteName::C;
+    //_note_name = NoteName::C;
     _articulation = SymbolId::noSym;
     _dots = 0;
     _input_buffer.clear();
@@ -371,6 +371,16 @@ BieSequencePatternType BrailleInputState::parseBraille(IntervalDirection directi
         code = pattern->res("dot");
         if(code != NULL) {
             setDots(1);
+        }
+
+        code = pattern->res("tie");
+        if(code != NULL) {
+            setTie(true);
+        }
+
+        code = pattern->res("note-slur");
+        if(code != NULL) {
+            setNoteSlur(true);
         }
         break;
     }
@@ -508,16 +518,6 @@ voice_idx_t BrailleInputState::voice()
     return _voice;
 }
 
-bool BrailleInputState::slur()
-{
-    return _slur;
-}
-
-bool BrailleInputState::tie()
-{
-    return _tie;
-}
-
 void BrailleInputState::setAccidental(const AccidentalType accidental)
 {
     _accidental = accidental;
@@ -572,14 +572,9 @@ void BrailleInputState::setVoice(const voice_idx_t voice)
     _voice = voice;
 }
 
-void BrailleInputState::setSlur(const bool s)
+void BrailleInputState::setNoteSlur(const bool s)
 {
     _slur = s;
-}
-
-void BrailleInputState::setTie(const bool s)
-{
-    _tie = s;
 }
 
 std::vector<int> BrailleInputState::intervals()
@@ -594,4 +589,50 @@ void BrailleInputState::addInterval(const int interval)
 {
     _intervals.push_back(interval);
 }
+
+bool BrailleInputState::tie()
+{
+    return _tie;
+}
+
+void BrailleInputState::setTie(const bool s)
+{
+    _tie = s;
+}
+
+Note* BrailleInputState::tieStartNote()
+{
+    return _tie_start_note;
+}
+
+void BrailleInputState::setTieStartNote(Note *note)
+{
+    _tie_start_note = note;
+}
+
+void BrailleInputState::clearTie()
+{
+    _tie_start_note = NULL;
+}
+
+bool BrailleInputState::slur()
+{
+    return _slur;
+}
+
+Note* BrailleInputState::slurStartNote()
+{
+    return _slur_start_note;
+}
+
+void BrailleInputState::setSlurStartNote(Note *note)
+{
+    _slur_start_note = note;
+}
+
+void BrailleInputState::clearSlur()
+{
+    _slur_start_note = NULL;
+}
+
 }

@@ -50,7 +50,7 @@ public:
     int addedOctave();
     voice_idx_t voice();
     bool slur();
-    bool tie();            
+    bool tie();
 
     void setAccidental(const AccidentalType accidental);
     void setNoteName(const NoteName notename, const bool chord_base = true);
@@ -60,14 +60,23 @@ public:
     void setOctave(const int octave);
     void setDots(const int dots);
     void setAddedOctave(const int octave);
-    void setVoice(const voice_idx_t voice);
-    void setSlur(const bool s);
-    void setTie(const bool s);
+    void setVoice(const voice_idx_t voice);    
+
     void setNoteGroup(const NoteGroup g);
 
     std::vector<int> intervals();
     void clearIntervals();
     void addInterval(const int interval);
+
+    void setTie(const bool s);
+    Note * tieStartNote();
+    void setTieStartNote(Note *);
+    void clearTie();
+
+    void setNoteSlur(const bool s);
+    Note * slurStartNote();
+    void setSlurStartNote(Note *);
+    void clearSlur();
 
 private:
     AccidentalType _accidental = AccidentalType::NONE;
@@ -86,6 +95,8 @@ private:
     NoteGroup _note_group = NoteGroup::Undefined;
 
     std::vector<int> _intervals;
+    Note * _tie_start_note =  NULL;
+    Note * _slur_start_note =  NULL;
 };
 
 QString parseBrailleKeyInput(QString keys);

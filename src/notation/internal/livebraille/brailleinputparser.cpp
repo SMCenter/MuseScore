@@ -247,7 +247,7 @@ bool BieSequencePattern::valid()
 }
 
 BieSequencePattern* BieRecognize(std::string braille) {
-    static std::string note_input_seq = "{[accidental][octave](note)[dot][fingering][slur-start][slur-end][tie]}";
+    static std::string note_input_seq = "{[accidental][octave](note)[dot][fingering][note-slur][slur-start][slur-end][tie]}";
     static BieSequencePattern bie_note_input(BieSequencePatternType::Note, note_input_seq);
 
     static std::string rest_input_seq = "{(rest)[dot][slur]}";

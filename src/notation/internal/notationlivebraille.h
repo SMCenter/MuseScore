@@ -66,6 +66,7 @@ public:
     bool addSlurStart();
     bool addSlurEnd();
     bool addTie();
+    bool addSlur();
     bool addTuplet(const mu::notation::TupletOptions& options);
 
     bool incDuration();
@@ -99,12 +100,15 @@ public:
 
     void setCursorColor(const QString color) override;
 
+    EngravingItem* currentEngravingItem();
+
     INotationPtr notation();
     INotationInteractionPtr interaction();
 
     BrailleEngravingItemList* brailleEngravingItemList();
     QString getBrailleStr();
 
+    BrailleInputState * brailleInput();
 private:
     engraving::Score* score();    
     engraving::Selection* selection();
@@ -121,6 +125,7 @@ private:
     io::path_t tablesDefaultDirPath() const;
 
     IntervalDirection getIntervalDirection();
+
 
     BrailleInputState m_braille_input;
 

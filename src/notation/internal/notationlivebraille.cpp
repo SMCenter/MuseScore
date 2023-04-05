@@ -35,12 +35,15 @@
 #include "libmscore/spanner.h"
 #include "libmscore/segment.h"
 #include "libmscore/slur.h"
+#include "libmscore/tie.h"
 #include "libmscore/staff.h"
 #include "libmscore/part.h"
 #include "libmscore/sig.h"
 #include "libmscore/measure.h"
+#include "libmscore/factory.h"
 
 #include "types/symnames.h"
+
 
 #include "internal/livebraille/louis.h"
 #include "internal/livebraille/braille.h"
@@ -48,6 +51,7 @@
 #include "internal/livebraille/brailleinputparser.h"
 
 #include "log.h"
+
 
 using namespace mu::notation;
 using namespace mu::async;
@@ -106,10 +110,10 @@ NotationLiveBraille::NotationLiveBraille(const Notation* notation)
     });
 
     notation->interaction()->noteInput()->noteAdded().onNotify(this, [this]() {        
-        if(current_engraving_item != NULL && current_engraving_item->isNote()) {
-            LOGD() << "Note added: " << current_engraving_item->accessibleInfo();
-            Note* note = toNote(current_engraving_item);
-            m_braille_input.setOctave(note->octave());
+        if(currentEngravingItem() != NULL && currentEngravingItem()->isNote()) {
+            LOGD() << "Note added: " << currentEngravingItem()->accessibleInfo();
+            Note* note = toNote(currentEngravingItem());
+            brailleInput()->setOctave(note->octave());
         }
     });
 }
@@ -273,6 +277,11 @@ QString NotationLiveBraille::getBrailleStr()
     return m_beil.brailleStr();
 }
 
+BrailleInputState * NotationLiveBraille::brailleInput()
+{
+    return &m_braille_input;
+}
+
 void NotationLiveBraille::setLiveBrailleInfo(const QString& info)
 {
     std::string infoStd = info.toStdString();
@@ -357,7 +366,7 @@ void NotationLiveBraille::setInputNoteDuration(Duration d)
             state = interaction()->noteInput()->state();
         }
     }
-    m_braille_input.setCurrentDuration(d.type());
+    brailleInput()->setCurrentDuration(d.type());
 }
 
 void NotationLiveBraille::setKeys(const QString& sequence)
@@ -383,7 +392,7 @@ void NotationLiveBraille::setKeys(const QString& sequence)
     } else if (seq == "Ctrl+Home") {
         interaction()->selectFirstElement();
     } else if (seq == "Delete") {
-        if(current_engraving_item) {
+        if(currentEngravingItem()) {
             interaction()->deleteSelection();            
         }
     } else if (seq == "N") {
@@ -393,7 +402,7 @@ void NotationLiveBraille::setKeys(const QString& sequence)
         } else {
             interaction()->noteInput()->endNoteInput();
         }
-        m_braille_input.initialize();
+        brailleInput()->initialize();
     } else if (seq == "Plus") {
         if(isBrailleInputMode()) {
             interaction()->noteInput()->doubleNoteInputDuration();
@@ -402,69 +411,99 @@ void NotationLiveBraille::setKeys(const QString& sequence)
         if(isBrailleInputMode()) {
             interaction()->noteInput()->halveNoteInputDuration();
         }
-    } else if(seq == "Space") {
-        std::string braille = translate2Braille(m_braille_input.buffer().toStdString());
+    } else if(seq == "Space+F" && isBrailleInputMode()) {
+        brailleInput()->setNoteGroup(NoteGroup::Group1);
+        brailleInput()->resetBuffer();
+    } else if(seq == "Space+D" && isBrailleInputMode()) {
+        brailleInput()->setNoteGroup(NoteGroup::Group2);
+        brailleInput()->resetBuffer();
+    } else if(seq == "Space+S" && isBrailleInputMode()) {
+        brailleInput()->setNoteGroup(NoteGroup::Group3);
+        brailleInput()->resetBuffer();
+    } else if(seq == "Space" && !brailleInput()->buffer().isEmpty() && isBrailleInputMode()) {
+        LOGD() << brailleInput()->buffer();
+        std::string braille = translate2Braille(brailleInput()->buffer().toStdString());
         BieRecognize(braille);
-        BieSequencePatternType type = m_braille_input.parseBraille(getIntervalDirection());
+        BieSequencePatternType type = brailleInput()->parseBraille(getIntervalDirection());
         switch(type) {
         case BieSequencePatternType::Note: {
             LOGD() << "NOTE:";
-            LOGD() << "input note " << fromNoteName(m_braille_input.noteName());
-            if(m_braille_input.accidental() != mu::notation::AccidentalType::NONE) {
-                interaction()->noteInput()->setAccidental(m_braille_input.accidental());
+            LOGD() << "input note " << fromNoteName(brailleInput()->noteName());
+            if(brailleInput()->accidental() != mu::notation::AccidentalType::NONE) {
+                interaction()->noteInput()->setAccidental(brailleInput()->accidental());
             }
 
-            DurationType duration = m_braille_input.getCloseDuration();
+            DurationType duration = brailleInput()->getCloseDuration();
             LOGD() << "add duration " << (int)duration;
             setInputNoteDuration(Duration(duration));            
-            LOGD() << "add note " << fromNoteName(m_braille_input.noteName());
-            interaction()->noteInput()->addNote(m_braille_input.noteName(), NoteAddingMode::NextChord);
-            LOGD() << "octave " << m_braille_input.octave() << " added octave " << m_braille_input.addedOctave();
-            if(m_braille_input.addedOctave() != -1) {
-                if(m_braille_input.addedOctave() < m_braille_input.octave()) {
-                    for(int i = m_braille_input.addedOctave(); i < m_braille_input.octave(); i++){
+            LOGD() << "add note " << fromNoteName(brailleInput()->noteName());
+            interaction()->noteInput()->addNote(brailleInput()->noteName(), NoteAddingMode::NextChord);
+            LOGD() << "octave " << brailleInput()->octave() << " added octave " << brailleInput()->addedOctave();
+            if(brailleInput()->addedOctave() != -1) {
+                if(brailleInput()->addedOctave() < brailleInput()->octave()) {
+                    for(int i = brailleInput()->addedOctave(); i < brailleInput()->octave(); i++){
                         interaction()->movePitch(MoveDirection::Down, PitchMode::OCTAVE);
                     }
-                } else if(m_braille_input.addedOctave() > m_braille_input.octave()) {
-                    for(int i = m_braille_input.octave(); i < m_braille_input.addedOctave(); i++){
+                } else if(brailleInput()->addedOctave() > brailleInput()->octave()) {
+                    for(int i = brailleInput()->octave(); i < brailleInput()->addedOctave(); i++){
                         interaction()->movePitch(MoveDirection::Up, PitchMode::OCTAVE);
                     }
                 }
-                m_braille_input.setOctave(m_braille_input.addedOctave());
+                brailleInput()->setOctave(brailleInput()->addedOctave());
             }
-            if(m_braille_input.dots() == 1) {
+            if(brailleInput()->dots() == 1) {
                 interaction()->increaseDecreaseDuration(-1, true);
+            }
+            if(brailleInput()->tie()) {
+                if(currentEngravingItem() != NULL && currentEngravingItem()->isNote()) {
+                    Note* note = toNote(currentEngravingItem());
+                    brailleInput()->setTieStartNote(note);
+                }
+            } else if(brailleInput()->tieStartNote() != NULL) {
+                addTie();
+                brailleInput()->clearTie();
+            }
+            if(brailleInput()->slur()) {
+                if(brailleInput()->slurStartNote() == NULL) {
+                    if(currentEngravingItem() != NULL && currentEngravingItem()->isNote()) {
+                        Note* note = toNote(currentEngravingItem());
+                        brailleInput()->setSlurStartNote(note);
+                    }
+                }
+            } else if(brailleInput()->slurStartNote() != NULL) {
+                addSlur();
+                brailleInput()->clearSlur();
             }
             break;
         }
         case BieSequencePatternType::Rest: {
-            DurationType duration = m_braille_input.getCloseDuration();
+            DurationType duration = brailleInput()->getCloseDuration();
             setInputNoteDuration(Duration(duration));
             interaction()->putRest(duration);
-            if(m_braille_input.dots() == 1) {
+            if(brailleInput()->dots() == 1) {
                 interaction()->increaseDecreaseDuration(1, true);
             }
             break;
         }        
         case BieSequencePatternType::Interval: {
             LOGD() << "INTERVAL:";
-            LOGD() << "input note " << fromNoteName(m_braille_input.noteName());
-            if(m_braille_input.accidental() != mu::notation::AccidentalType::NONE) {
-                interaction()->noteInput()->setAccidental(m_braille_input.accidental());
+            LOGD() << "input note " << fromNoteName(brailleInput()->noteName());
+            if(brailleInput()->accidental() != mu::notation::AccidentalType::NONE) {
+                interaction()->noteInput()->setAccidental(brailleInput()->accidental());
             }
 
-            DurationType duration = m_braille_input.getCloseDuration();
+            DurationType duration = brailleInput()->getCloseDuration();
             setInputNoteDuration(Duration(duration));
-            LOGD() << "add note " << fromNoteName(m_braille_input.noteName());
-            interaction()->noteInput()->addNote(m_braille_input.noteName(), NoteAddingMode::CurrentChord);
-            LOGD() << "octave " << m_braille_input.octave() << " added octave " << m_braille_input.addedOctave();
-            if(m_braille_input.addedOctave() != -1) {
-                if(m_braille_input.addedOctave() < m_braille_input.octave()) {
-                    for(int i = m_braille_input.addedOctave(); i < m_braille_input.octave(); i++){
+            LOGD() << "add note " << fromNoteName(brailleInput()->noteName());
+            interaction()->noteInput()->addNote(brailleInput()->noteName(), NoteAddingMode::CurrentChord);
+            LOGD() << "octave " << brailleInput()->octave() << " added octave " << brailleInput()->addedOctave();
+            if(brailleInput()->addedOctave() != -1) {
+                if(brailleInput()->addedOctave() < brailleInput()->octave()) {
+                    for(int i = brailleInput()->addedOctave(); i < brailleInput()->octave(); i++){
                         interaction()->movePitch(MoveDirection::Down, PitchMode::OCTAVE);
                     }
-                } else if(m_braille_input.addedOctave() > m_braille_input.octave()) {
-                    for(int i = m_braille_input.octave(); i < m_braille_input.addedOctave(); i++){
+                } else if(brailleInput()->addedOctave() > brailleInput()->octave()) {
+                    for(int i = brailleInput()->octave(); i < brailleInput()->addedOctave(); i++){
                         interaction()->movePitch(MoveDirection::Up, PitchMode::OCTAVE);
                     }
                 }
@@ -484,37 +523,60 @@ void NotationLiveBraille::setKeys(const QString& sequence)
         }
         */
         default: {
-            if(m_braille_input.buffer() == "G-1") {
-                m_braille_input.setNoteGroup(NoteGroup::Group1);
-                m_braille_input.resetBuffer();
-            } else if(m_braille_input.buffer() == "G-2") {
-                m_braille_input.setNoteGroup(NoteGroup::Group2);
-                m_braille_input.resetBuffer();
-            } else if(m_braille_input.buffer() == "G-3") {
-                m_braille_input.setNoteGroup(NoteGroup::Group3);
-                m_braille_input.resetBuffer();
-            }
-            break;
+            // TODO
         }
         }
-        m_braille_input.reset();
+        brailleInput()->reset();
     } else if(isBrailleInputMode() && !sequence.isEmpty()) {
         QString pattern = parseBrailleKeyInput(sequence);
         if(!pattern.isEmpty()) {
-            m_braille_input.insertToBuffer(pattern);
+            brailleInput()->insertToBuffer(pattern);
         } else {
-            m_braille_input.insertToBuffer(sequence);
+            brailleInput()->insertToBuffer(sequence);
         }
     }
 }
+bool NotationLiveBraille::addTie()
+{
+    LOGD() << "adding tie...";
+    if(brailleInput()->tieStartNote() != NULL
+       && currentEngravingItem() != NULL && currentEngravingItem()->isNote()) {
+        score()->startCmd();
+        Note* note = toNote(currentEngravingItem());
+
+        Tie* tie = Factory::createTie(score()->dummy());
+        tie->setStartNote(brailleInput()->tieStartNote());
+        tie->setEndNote(note);
+        tie->setTrack(brailleInput()->tieStartNote()->track());
+        tie->setTick(brailleInput()->tieStartNote()->chord()->segment()->tick());
+        tie->setTicks(note->chord()->segment()->tick() - brailleInput()->tieStartNote()->chord()->segment()->tick());
+        score()->undoAddElement(tie);
+        score()->endCmd();
+        return true;
+   } else {
+        return false;
+   }
+}
+
+bool NotationLiveBraille::addSlur()
+{
+    LOGD() << "adding slur...";
+    if(brailleInput()->slurStartNote() != NULL
+       && currentEngravingItem() != NULL && currentEngravingItem()->isNote()) {
+        return true;
+   } else {
+        return false;
+   }
+}
+
 bool NotationLiveBraille::addVoice()
 {
     LOGD() << "Try adding a voice...";
-    if(current_engraving_item == NULL) {
+    if(currentEngravingItem() == NULL) {
         return false;
     }
 
-    staff_idx_t staff = current_engraving_item->staffIdx();
+    staff_idx_t staff = currentEngravingItem()->staffIdx();
 
     int voices = 0;
     for (size_t i = 1; i < VOICES; ++i) {
@@ -604,5 +666,10 @@ IntervalDirection NotationLiveBraille::getIntervalDirection()
         return IntervalDirection::Up;
 
     return IntervalDirection::Up;
+}
+
+EngravingItem* NotationLiveBraille::currentEngravingItem()
+{
+    return current_engraving_item;
 }
 
