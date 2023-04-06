@@ -305,18 +305,19 @@ void BrailleInputState::initialize()
     _note_slur = _long_slur_start = _long_slur_stop = _tie = false;
     _note_group = NoteGroup::Group1;
     _intervals.clear();
+    _accord = false;
 }
 
 void BrailleInputState::reset()
 {
-    _accidental = AccidentalType::NONE;
-    //_note_name = NoteName::C;
+    _input_buffer.clear();
+    _accidental = AccidentalType::NONE;    
     _articulation = SymbolId::noSym;
     _dots = 0;
-    _input_buffer.clear();
     _code_num = 0;
     _note_slur = _long_slur_start = _long_slur_stop = _tie = false;
     _added_octave = -1;
+    _accord = false;
 }
 
 void BrailleInputState::resetBuffer()
@@ -392,6 +393,11 @@ BieSequencePatternType BrailleInputState::parseBraille(IntervalDirection directi
         if(code != NULL) {
             setLongSlurStop(true);
         }
+
+        code = pattern->res("accord");
+        if(code != NULL) {
+            setAccord(true);
+        }
         break;
     }
     case BieSequencePatternType::Rest: {
@@ -401,6 +407,11 @@ BieSequencePatternType BrailleInputState::parseBraille(IntervalDirection directi
         code = pattern->res("dot");
         if(code != NULL) {
             setDots(1);
+        }
+
+        code = pattern->res("accord");
+        if(code != NULL) {
+            setAccord(true);
         }
         break;
     }
@@ -678,6 +689,16 @@ void BrailleInputState::clearSlur()
 void BrailleInputState::clearLongSlur()
 {
     _long_slur_start_note = NULL;
+}
+
+bool BrailleInputState::accord()
+{
+    return _accord;
+}
+
+void BrailleInputState::setAccord(const bool val)
+{
+    _accord = val;
 }
 
 }

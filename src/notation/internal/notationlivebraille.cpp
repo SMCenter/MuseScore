@@ -307,7 +307,6 @@ void NotationLiveBraille::setCursorPosition(const int pos)
     if (current_bei != NULL && current_bei->el() != NULL
         && (current_bei->type() == BEIType::EngravingItem
             || current_bei->type() == BEIType::LyricItem)) {
-            //interaction()->select({current_bei->el()});
             setCurrentEngravingItem(current_bei->el(), true);
     }
 }
@@ -435,7 +434,10 @@ void NotationLiveBraille::setKeys(const QString& sequence)
 
             DurationType duration = brailleInput()->getCloseDuration();
             LOGD() << "add duration " << (int)duration;
-            setInputNoteDuration(Duration(duration));            
+            setInputNoteDuration(Duration(duration));
+            if(brailleInput()->accord()) {
+                addVoice();
+            }
             LOGD() << "add note " << fromNoteName(brailleInput()->noteName());
             interaction()->noteInput()->addNote(brailleInput()->noteName(), NoteAddingMode::NextChord);
             LOGD() << "octave " << brailleInput()->octave() << " added octave " << brailleInput()->addedOctave();
@@ -489,7 +491,9 @@ void NotationLiveBraille::setKeys(const QString& sequence)
                     addLongSlur();
                     brailleInput()->clearLongSlur();
                 }
-            }
+            }            
+
+            playbackController()->playElements({ currentEngravingItem() });
             break;
         }
         case BieSequencePatternType::Rest: {
@@ -523,7 +527,8 @@ void NotationLiveBraille::setKeys(const QString& sequence)
                         interaction()->movePitch(MoveDirection::Up, PitchMode::OCTAVE);
                     }
                 }
-            }
+            }            
+            playbackController()->playElements({ currentEngravingItem() });
             break;
         }
         /*
@@ -683,12 +688,11 @@ bool NotationLiveBraille::addVoice()
             voices++;
         }
     }
-    if(voices >= 4) {
+    if(voices >= 3) {
         return false;
     }
 
-
-
+    interaction()->noteInput()->setCurrentVoice(voices +1);
     return true;
 }
 void NotationLiveBraille::setMode(const LiveBrailleMode mode)
@@ -746,13 +750,16 @@ void NotationLiveBraille::setCurrentEngravingItem(EngravingItem* e, bool select)
         return;
     }
 
-    current_engraving_item  = e;
-
+    bool play = current_engraving_item != e;
+    current_engraving_item = e;
     if(isNavigationMode()) {        
-        if(select) {
+        if(select) {            
+            if(play) {
+                playbackController()->playElements({e});
+            }
             interaction()->select({e});
         }
-    }
+    }    
 }
 
 IntervalDirection NotationLiveBraille::getIntervalDirection()

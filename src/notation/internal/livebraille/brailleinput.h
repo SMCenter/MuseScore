@@ -85,6 +85,8 @@ public:
     void clearSlur();
     void clearLongSlur();
 
+    bool accord();
+    void setAccord(const bool val);
 private:
     AccidentalType _accidental = AccidentalType::NONE;
     NoteName _note_name = NoteName::C;
@@ -109,6 +111,8 @@ private:
     bool _note_slur, _long_slur_start, _long_slur_stop;
     Note * _slur_start_note =  NULL;
     Note * _long_slur_start_note =  NULL;
+
+    bool _accord;
 };
 
 QString parseBrailleKeyInput(QString keys);

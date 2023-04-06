@@ -38,6 +38,7 @@ private:
     bool _valid;
     std::map<std::string, braille_code *> _res;
     int max_cell_length;
+    int _mandatories = 0;
 };
 
 BieSequencePattern* BieRecognize(std::string braille);

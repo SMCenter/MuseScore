@@ -38,6 +38,7 @@
 #include "internal/livebraille/livebraille.h"
 #include "context/iglobalcontext.h"
 #include "notation/inotationconfiguration.h"
+#include "playback/iplaybackcontroller.h"
 
 #include "internal/livebraille/livebraille.h"
 #include "internal/livebraille/brailleinput.h"
@@ -55,6 +56,7 @@ class NotationLiveBraille : public INotationLiveBraille, public async::Asyncable
     INJECT(notation, framework::IGlobalConfiguration, globalConfiguration)
     INJECT(notation, context::IGlobalContext, context)
     INJECT(notation, notation::INotationConfiguration, notationConfiguration)
+    INJECT(notation, playback::IPlaybackController, playbackController)
 public:
     NotationLiveBraille(const Notation* notation);
 

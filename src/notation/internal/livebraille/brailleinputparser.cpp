@@ -133,7 +133,7 @@ BieSequencePattern::BieSequencePattern(BieSequencePatternType t, std::string seq
         }
 
         if(openning == ' ' && !key.isEmpty()) {
-            LOGD() << key << " " << mandatory;
+            //LOGD() << key << " " << mandatory;
             BiePattern * pattern = NULL;
             if(key == "accord") {
                 pattern = &pattern_accord;
@@ -168,11 +168,14 @@ BieSequencePattern::BieSequencePattern(BieSequencePatternType t, std::string seq
             } else if(key == "number") {
                 pattern = &pattern_numbers;
             }
-            if(pattern != NULL) {
+            if(pattern != NULL) {                
                 patterns.push_back({pattern->name, pattern->codes, mandatory});
                 int n = maxPatternLength(pattern);
                 if(max_cell_length < n ) {
                     max_cell_length = n;
+                }
+                if(mandatory) {
+                    _mandatories++;
                 }
             }
             mandatory = false;
@@ -195,24 +198,28 @@ BieSequencePatternType BieSequencePattern::type()
 
 bool BieSequencePattern::recognize(std::string braille)
 {
-    _res.clear();
+    _res.clear();    
 
-    int pos = 0;
-    size_t cursor = 0;
+    size_t pos = 0;
+    size_t cursor = 0;    
 
-    while(cursor < braille.length()) {
-        LOGD() << "cursor: " << cursor;
+    int mandatory_matches = 0;
+    while(cursor < braille.length() && pos < patterns.size()) {
+        //LOGD() << "cursor: " << cursor;
         bool match = false;
-        for(auto code : patterns[pos].codes) {            
+        for(auto code : patterns[pos].codes) {
             int len = code->cells_num;
             if(cursor + len <= braille.length()) {
                 std::string bxt = braille.substr(cursor, len);
                 if(bxt == code->braille) {
-                    code->print();
+                    //code->print();
                     match = true;
                     _res[patterns[pos].name] = code;
+                    if(patterns[pos].mandatory) {
+                        mandatory_matches++;
+                    }
                     pos++;
-                    cursor += len;                    
+                    cursor += len;
                     break;
                 }
             }
@@ -225,10 +232,11 @@ bool BieSequencePattern::recognize(std::string braille)
             }
         }
     }
-    for(std::map<std::string, braille_code *>::iterator it = _res.begin(); it != _res.end(); ++it) {
-        LOGD() << "Key: " << it->first << " value: " << it->second->tag;
-    }
-    return true;
+    //for(std::map<std::string, braille_code *>::iterator it = _res.begin(); it != _res.end(); ++it) {
+    //    LOGD() << "Key: " << it->first << " value: " << it->second->tag;
+    //}
+    //LOGD() << "matches: " << mandatory_matches << " mandatories: " << _mandatories;
+    return mandatory_matches == _mandatories;
 }
 
 std::map<std::string, braille_code*> BieSequencePattern::res()
@@ -247,17 +255,14 @@ bool BieSequencePattern::valid()
 }
 
 BieSequencePattern* BieRecognize(std::string braille) {
-    static std::string note_input_seq = "{[long-slur-start][accidental][octave](note)[dot][fingering][note-slur][long-slur-stop][tie]}";
+    static std::string note_input_seq = "{[accord][long-slur-start][accidental][octave](note)[dot][fingering][note-slur][long-slur-stop][tie]}";
     static BieSequencePattern bie_note_input(BieSequencePatternType::Note, note_input_seq);
 
-    static std::string rest_input_seq = "{(rest)[dot][slur]}";
+    static std::string rest_input_seq = "{[accord](rest)[dot][slur]}";
     static BieSequencePattern bie_rest_input(BieSequencePatternType::Rest, rest_input_seq);
 
     static std::string interval_input_seq = "{[accidental][octave](interval)[fingering][tie]}";
     static BieSequencePattern bie_interval_input(BieSequencePatternType::Interval, interval_input_seq);
-
-    static std::string accord_seq = "{(accord)}";
-    static BieSequencePattern bie_accord(BieSequencePatternType::Accord, accord_seq);
 
     static std::string tuplet3_seq = "{(tuplet3)}";
     static BieSequencePattern bie_tuplet3(BieSequencePatternType::Tuplet3, tuplet3_seq);
@@ -273,8 +278,6 @@ BieSequencePattern* BieRecognize(std::string braille) {
         res = &bie_rest_input;
     } else if(bie_interval_input.valid() && bie_interval_input.recognize(braille)) {
         res = &bie_interval_input;
-    } else if(bie_accord.valid() && bie_accord.recognize(braille)) {
-        res = &bie_accord;
     } else if(bie_tuplet3.valid() && bie_tuplet3.recognize(braille)) {
         res = &bie_tuplet3;
     } else if(bie_tuplet.valid() && bie_tuplet.recognize(braille)) {        
