@@ -64,7 +64,7 @@ public:
 
     // Braille input
     bool addNote();
-    bool addVoice();
+    bool setVoice(bool new_voice = false);
     bool addSlurStart();
     bool addSlurEnd();
     bool addTie();
@@ -104,6 +104,7 @@ public:
     void setCursorColor(const QString color) override;
 
     EngravingItem* currentEngravingItem();
+    Measure* currentMeasure();
 
     INotationPtr notation();
     INotationInteractionPtr interaction();

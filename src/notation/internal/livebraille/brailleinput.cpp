@@ -253,10 +253,10 @@ int getOctaveDiff(IntervalDirection direction, NoteName source, int interval)
         while(src < interval) {
             src += 7;
             diff--;
-        }
+        }        
         break;
     }
-    LOGD() << diff;
+    LOGD() << "Direction DOWN " << fromNoteName(source) << " " << interval << " diff " << diff;
     return diff;
 }
 
@@ -268,7 +268,7 @@ NoteName getNoteNameForInterval(IntervalDirection direction, NoteName source, in
         LOGD() << "Direction UP " << fromNoteName(source) << " " << interval;
         note = (NoteName)(((int) source + interval - 1) % 7);
         break;
-    default:
+    case IntervalDirection::Down:
         LOGD() << "Direction DOWN " << fromNoteName(source) << " " << interval;
         int src = (int) source;
         while(src < interval) {
@@ -352,7 +352,7 @@ BieSequencePatternType BrailleInputState::parseBraille(IntervalDirection directi
         braille_code* code = pattern->res("note");
 
         NoteName note_name = getNoteName(code);
-        int octave_diff = getOctaveDiff(noteName(), note_name);
+        int octave_diff = getOctaveDiff(chordBaseNoteName(), note_name);
 
         setNoteName(note_name);
         setNoteDurations(getNoteDurations(code));
@@ -416,14 +416,13 @@ BieSequencePatternType BrailleInputState::parseBraille(IntervalDirection directi
         break;
     }
     case BieSequencePatternType::Interval: {
-        //int last_interval = intervals().empty() ? -1 : intervals().back();
+        int last_interval = intervals().empty() ? -1 : intervals().back();
         braille_code* code = pattern->res("interval");
-        int interval = getInterval(code);
-        int octave_diff = getOctaveDiff(direction, noteName(), interval);
+        int interval = getInterval(code);        
+        interval = addInterval(interval);
+        int octave_diff = getOctaveDiff(direction, chordBaseNoteName(), interval);
 
-        addInterval(interval);
-
-        NoteName note_name = getNoteNameForInterval(direction, _chordbase_note_name, interval);
+        NoteName note_name = getNoteNameForInterval(direction, chordBaseNoteName(), interval);
         setNoteName(note_name, false);
 
         code = pattern->res("octave");
@@ -462,6 +461,10 @@ AccidentalType BrailleInputState::accidental()
 NoteName BrailleInputState::noteName()
 {
     return _note_name;
+}
+
+NoteName BrailleInputState::chordBaseNoteName() {
+    return _chordbase_note_name;
 }
 
 NoteGroup BrailleInputState::noteGroup()
@@ -601,9 +604,17 @@ void BrailleInputState::clearIntervals()
 {
     _intervals.clear();
 }
-void BrailleInputState::addInterval(const int interval)
-{
+int BrailleInputState::addInterval(int interval)
+{    
+    if(!intervals().empty()) {
+        int last = _intervals.back();
+        while(interval < last) {
+            interval += 7;
+        }
+    }
+
     _intervals.push_back(interval);
+    return interval;
 }
 
 bool BrailleInputState::tie()

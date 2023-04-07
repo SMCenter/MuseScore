@@ -22,15 +22,9 @@
 
 #include "io/iodevice.h"
 #include "io/buffer.h"
-
-#include "notationlivebraille.h"
-
 #include "translation.h"
-
 #include "igetscore.h"
 #include "notation.h"
-#include "internal/notationactioncontroller.h"
-
 #include "libmscore/masterscore.h"
 #include "libmscore/spanner.h"
 #include "libmscore/segment.h"
@@ -41,17 +35,14 @@
 #include "libmscore/sig.h"
 #include "libmscore/measure.h"
 #include "libmscore/factory.h"
-
 #include "types/symnames.h"
+#include "log.h"
 
-
+#include "notationlivebraille.h"
 #include "internal/livebraille/louis.h"
 #include "internal/livebraille/braille.h"
 #include "internal/livebraille/brailleinput.h"
 #include "internal/livebraille/brailleinputparser.h"
-
-#include "log.h"
-
 
 using namespace mu::notation;
 using namespace mu::async;
@@ -409,7 +400,7 @@ void NotationLiveBraille::setKeys(const QString& sequence)
     } else if (seq == "Minus") {
         if(isBrailleInputMode()) {
             interaction()->noteInput()->halveNoteInputDuration();
-        }
+        }    
     } else if(seq == "Space+F" && isBrailleInputMode()) {
         brailleInput()->setNoteGroup(NoteGroup::Group1);
         brailleInput()->resetBuffer();
@@ -434,10 +425,8 @@ void NotationLiveBraille::setKeys(const QString& sequence)
 
             DurationType duration = brailleInput()->getCloseDuration();
             LOGD() << "add duration " << (int)duration;
-            setInputNoteDuration(Duration(duration));
-            if(brailleInput()->accord()) {
-                addVoice();
-            }
+            setInputNoteDuration(Duration(duration));            
+            setVoice(brailleInput()->accord());
             LOGD() << "add note " << fromNoteName(brailleInput()->noteName());
             interaction()->noteInput()->addNote(brailleInput()->noteName(), NoteAddingMode::NextChord);
             LOGD() << "octave " << brailleInput()->octave() << " added octave " << brailleInput()->addedOctave();
@@ -531,18 +520,6 @@ void NotationLiveBraille::setKeys(const QString& sequence)
             playbackController()->playElements({ currentEngravingItem() });
             break;
         }
-        /*
-        case BraillePatternType::LongSlurStart: {
-            break;
-        }
-        case BraillePatternType::LongSlurStop: {
-            break;
-        }
-        case BraillePatternType::InAccord: {
-            // add new voice
-            break;
-        }
-        */
         default: {
             // TODO
         }
@@ -617,6 +594,7 @@ bool NotationLiveBraille::addSlur()
             slur->add(ss);
 
             score()->endCmd();
+            doLiveBraille(true);
             return true;
         }
         return false;
@@ -663,7 +641,8 @@ bool NotationLiveBraille::addLongSlur()
             }
             slur->add(ss);
 
-            score()->endCmd();
+            score()->endCmd();            
+            doLiveBraille(true);
             return true;
         }
         return false;
@@ -673,27 +652,36 @@ bool NotationLiveBraille::addLongSlur()
    }
 }
 
-bool NotationLiveBraille::addVoice()
+bool NotationLiveBraille::setVoice(bool new_voice)
 {
-    LOGD() << "Try adding a voice...";
-    if(currentEngravingItem() == NULL) {
+    if(currentEngravingItem() == NULL || currentMeasure() == NULL) {
         return false;
     }
 
     staff_idx_t staff = currentEngravingItem()->staffIdx();
 
-    int voices = 0;
-    for (size_t i = 1; i < VOICES; ++i) {
-        if (current_measure->hasVoice(staff * VOICES + i)) {
-            voices++;
+    if(new_voice) {
+        int voices = 0;
+        for (size_t i = 1; i < VOICES; ++i) {
+            if (current_measure->hasVoice(staff * VOICES + i)) {
+                voices++;
+            }
         }
-    }
-    if(voices >= 3) {
+        if(voices >= 3) {
+            return false;
+        }
+
+        score()->inputState().moveInputPos(currentMeasure()->segments().firstCRSegment());
+        interaction()->noteInput()->setCurrentVoice(voices +1);
+        return true;
+    } else {
+        Segment* segment = score()->inputState().segment();
+        Measure* measure = segment->measure();
+        if(!measure->hasVoice(staff + 1) && segment->tick() == measure->tick()) {
+            interaction()->noteInput()->setCurrentVoice(0);
+        }
         return false;
     }
-
-    interaction()->noteInput()->setCurrentVoice(voices +1);
-    return true;
 }
 void NotationLiveBraille::setMode(const LiveBrailleMode mode)
 {    
@@ -768,8 +756,16 @@ IntervalDirection NotationLiveBraille::getIntervalDirection()
         return IntervalDirection::Up;
     else if(m_intervalDirection.val == "Down")
         return IntervalDirection::Down;
-    else if(m_intervalDirection.val == "Auto")
-        return IntervalDirection::Up;
+    else if(m_intervalDirection.val == "Auto") {
+        if(currentEngravingItem() != NULL && currentMeasure() != NULL) {
+            ClefType clef = currentMeasure()->staff()->clef(currentEngravingItem()->tick());
+            if(clef >= ClefType::G && clef <= ClefType::C3) {
+                return IntervalDirection::Down;
+            } else {
+                return IntervalDirection::Up;
+            }
+        }
+    }
 
     return IntervalDirection::Up;
 }
@@ -777,5 +773,10 @@ IntervalDirection NotationLiveBraille::getIntervalDirection()
 EngravingItem* NotationLiveBraille::currentEngravingItem()
 {
     return current_engraving_item;
+}
+
+Measure* NotationLiveBraille::currentMeasure()
+{
+    return current_measure;
 }
 

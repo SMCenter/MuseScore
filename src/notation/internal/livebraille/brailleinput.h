@@ -37,6 +37,7 @@ public:
 
     AccidentalType accidental();
     NoteName noteName();
+    NoteName chordBaseNoteName();
     NoteGroup noteGroup();
 
     DurationType currentDuration();
@@ -52,7 +53,7 @@ public:
     bool noteSlur();
     bool longSlurStart();
     bool longSlurStop();
-    bool tie();
+    bool tie();    
 
     void setAccidental(const AccidentalType accidental);
     void setNoteName(const NoteName notename, const bool chord_base = true);
@@ -68,7 +69,7 @@ public:
 
     std::vector<int> intervals();
     void clearIntervals();
-    void addInterval(const int interval);
+    int addInterval(int interval);
 
     void setTie(const bool s);
     Note * tieStartNote();

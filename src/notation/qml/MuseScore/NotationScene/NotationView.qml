@@ -207,6 +207,9 @@ FocusScope {
                         }
                     }
                 }
+                onLiveBrailleInfoChanged: {
+                    fakeNavCtrl2.accessible.textChanged(livebrailleinfo.text);
+                }
 
                 Component.onCompleted: {
                     livebrailleview.visible = lbmodel.enabled
