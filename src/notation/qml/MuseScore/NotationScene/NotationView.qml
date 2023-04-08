@@ -196,11 +196,11 @@ FocusScope {
                 onLiveBrailleModeChanged: {
                     switch(lbmodel.mode) {
                         case 1: {
-                            fakeNavCtrl2.accessible.setName(qsTrc("notation", "Normal mode"));
+                            fakeNavCtrl2.accessible.setName("Live braille: Normal mode");
                             break;
                         }
                         case 2: {
-                            fakeNavCtrl2.accessible.setName(qsTrc("notation", "Note input mode"));
+                            fakeNavCtrl2.accessible.setName("Live braille: Note input mode");
                             break;
                         }
                     }
