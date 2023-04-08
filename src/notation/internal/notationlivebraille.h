@@ -62,7 +62,6 @@ public:
 
     void doLiveBraille(bool force = false);
 
-    // Braille input
     bool addNote();
     bool setVoice(bool new_voice = false);
     bool addSlurStart();
@@ -71,12 +70,9 @@ public:
     bool addSlur();
     bool addLongSlur();
     bool addTuplet(const mu::notation::TupletOptions& options);
-
     bool incDuration();
     bool decDuration();
-
     bool setArticulation();
-
     void setInputNoteDuration(Duration d);
 
     ValCh<std::string> liveBrailleInfo() const override;
@@ -117,22 +113,18 @@ private:
     engraving::Score* score();    
     engraving::Selection* selection();
 
+    void setLiveBrailleInfo(const QString& info);
+    void setCurrentEngravingItem(EngravingItem* el, bool select);
+    void updateTableForLyricsFromPreferences();
+    io::path_t tablesDefaultDirPath() const;
+    IntervalDirection getIntervalDirection();
+
     Notation* m_notation;
     Measure* current_measure = NULL;
     EngravingItem* current_engraving_item = NULL;
     BrailleEngravingItem* current_bei = NULL;
-
-    void setLiveBrailleInfo(const QString& info);
-    void setCurrentEngravingItem(EngravingItem* el, bool select);
-
-    void updateTableForLyricsFromPreferences();
-    io::path_t tablesDefaultDirPath() const;
-
-    IntervalDirection getIntervalDirection();
-
-
+    BrailleEngravingItemList m_beil;
     BrailleInputState m_braille_input;
-
     const IGetScore* m_getScore = nullptr;
 
     ValCh<std::string> m_liveBrailleInfo;
@@ -145,7 +137,6 @@ private:
     ValCh<QString> m_intervalDirection;
     ValCh<std::string> m_cursorColor;
 
-    BrailleEngravingItemList m_beil;
     async::Notification m_selectionChanged;
 };
 }

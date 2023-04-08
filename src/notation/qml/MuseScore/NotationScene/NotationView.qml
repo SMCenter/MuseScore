@@ -195,21 +195,16 @@ FocusScope {
 
                 onLiveBrailleModeChanged: {
                     switch(lbmodel.mode) {
-                        case 1: { // navigation mode
-                            fakeNavCtrl2.accessible.setName("Live Braille - Navigation mode");
-                            fakeNavCtrl2.accessible.nameChanged("Live Braille - Navigation mode");
+                        case 1: {
+                            fakeNavCtrl2.accessible.setName(qsTrc("notation", "Normal mode"));
                             break;
                         }
-                        case 2: { // Input mode
-                            fakeNavCtrl2.accessible.setName("Live Braille - Input mode");
-                            fakeNavCtrl2.accessible.nameChanged("Live Braille - Input mode");
+                        case 2: {
+                            fakeNavCtrl2.accessible.setName(qsTrc("notation", "Note input mode"));
                             break;
                         }
                     }
-                }
-                onLiveBrailleInfoChanged: {
-                    fakeNavCtrl2.accessible.textChanged(livebrailleinfo.text);
-                }
+                }                
 
                 Component.onCompleted: {
                     livebrailleview.visible = lbmodel.enabled
@@ -301,7 +296,7 @@ FocusScope {
                         order: 1
 
                         accessible.role: MUAccessible.EditableText
-                        accessible.name: "Live Braille"
+                        accessible.name: "Live braille"
                         accessible.visualItem: livebrailleinfo
                         accessible.text: livebrailleinfo.text
                         accessible.selectedText: livebrailleinfo.selectedText
@@ -327,8 +322,7 @@ FocusScope {
                         drawOutsideParent: false
                     }
 
-                    onCursorPositionChanged: {
-                        //console.log("pos: ", livebrailleinfo.cursorPosition);
+                    onCursorPositionChanged: {                        
                         lbmodel.cursorPosition = livebrailleinfo.cursorPosition;                        
                     }
 
@@ -370,8 +364,7 @@ FocusScope {
                     Keys.onReleased: {                        
                         if(event.key !== Qt.Key_Shift && event.key !== Qt.Key_Alt &&
                                 event.key !== Qt.Key_Control) {
-                            lbmodel.keys_pressed--;
-                            //console.log("Keys.onReleased :", lbmodel.keys_pressed);
+                            lbmodel.keys_pressed--;                            
                             if(lbmodel.keys_pressed <= 0) {                                
                                 lbmodel.keys = lbmodel.keys_buffer;
                                 lbmodel.keys_buffer = "";

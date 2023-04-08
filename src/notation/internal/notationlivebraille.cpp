@@ -386,12 +386,7 @@ void NotationLiveBraille::setKeys(const QString& sequence)
             interaction()->deleteSelection();            
         }
     } else if (seq == "N") {
-        toggleMode();
-        if(isBrailleInputMode()) {
-            interaction()->noteInput()->startNoteInput();
-        } else {
-            interaction()->noteInput()->endNoteInput();
-        }
+        toggleMode();        
         brailleInput()->initialize();
     } else if (seq == "Plus") {
         if(isBrailleInputMode()) {
@@ -700,15 +695,28 @@ void NotationLiveBraille::setMode(const LiveBrailleMode mode)
 
 void NotationLiveBraille::toggleMode()
 {
+    std::string stateTitle;
+
     switch ((LiveBrailleMode)mode().val) {
         case LiveBrailleMode::Undefined:
         case LiveBrailleMode::Navigation:
-            setMode(LiveBrailleMode::BrailleInput);
+            setMode(LiveBrailleMode::BrailleInput);            
+            interaction()->noteInput()->startNoteInput();
+            stateTitle = trc("notation", "Note input mode");
             break;
         case LiveBrailleMode::BrailleInput:
             setMode(LiveBrailleMode::Navigation);
+            interaction()->noteInput()->endNoteInput();
+            stateTitle = trc("notation", "Normal mode");
             break;
     }
+
+    auto notationAccessibility = notation()->accessibility();
+    if (!notationAccessibility) {
+        return;
+    }
+
+    notationAccessibility->setTriggeredCommand(stateTitle);
 }
 
 bool NotationLiveBraille::isNavigationMode()
@@ -757,17 +765,24 @@ IntervalDirection NotationLiveBraille::getIntervalDirection()
     else if(m_intervalDirection.val == "Down")
         return IntervalDirection::Down;
     else if(m_intervalDirection.val == "Auto") {
-        if(currentEngravingItem() != NULL && currentMeasure() != NULL) {
-            ClefType clef = currentMeasure()->staff()->clef(currentEngravingItem()->tick());
-            if(clef >= ClefType::G && clef <= ClefType::C3) {
-                return IntervalDirection::Down;
+        if(currentEngravingItem() != NULL && currentEngravingItem()->isNote()) {
+            Note* note = toNote(currentEngravingItem());
+            Staff* staff = note->staff();
+            Fraction tick = note->tick();
+            if(staff) {
+                ClefType clef = staff->clef(tick);
+                if(clef >= ClefType::G && clef <= ClefType::C3) {
+                    return IntervalDirection::Down;
+                } else {
+                    return IntervalDirection::Up;
+                }
             } else {
-                return IntervalDirection::Up;
+                return IntervalDirection::Down;
             }
         }
     }
 
-    return IntervalDirection::Up;
+    return IntervalDirection::Down;
 }
 
 EngravingItem* NotationLiveBraille::currentEngravingItem()
