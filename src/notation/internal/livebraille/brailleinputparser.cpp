@@ -42,10 +42,11 @@ static BiePattern pattern_fingerings ={"fingering",
 
 static BiePattern pattern_tuplet3 ={"tuplet3", {&Braille_Tuplet3}};
 static BiePattern pattern_tuplet_prefix ={"tuplet-prefix", {&Braille_TupletPrefix}};
+static BiePattern pattern_tuplet_suffix ={"tuplet-suffix", {&Braille_Dot}};
 
-static BiePattern pattern_numbers ={"number",
-    {&Braille_Upper0, &Braille_Upper1, &Braille_Upper2, &Braille_Upper3, &Braille_Upper4,
-     &Braille_Upper5, &Braille_Upper6, &Braille_Upper7, &Braille_Upper8, &Braille_Upper9}};
+static BiePattern pattern_tuplet_numbers ={"tuplet-number",
+    {&Braille_Lower2, &Braille_Lower3, &Braille_Lower5,
+     &Braille_Lower7, &Braille_Lower8, &Braille_Lower9}};
 
 static int maxPatternLength(BiePattern* pattern)
 {
@@ -165,8 +166,10 @@ BieSequencePattern::BieSequencePattern(BieSequencePatternType t, std::string seq
                 pattern = &pattern_tuplet3;
             } else if(key == "tuplet-prefix") {
                 pattern = &pattern_tuplet_prefix;
-            } else if(key == "number") {
-                pattern = &pattern_numbers;
+            } else if(key == "tuplet-number") {
+                pattern = &pattern_tuplet_numbers;
+            } else if(key == "tuplet-suffix") {
+                pattern = &pattern_tuplet_suffix;
             }
             if(pattern != NULL) {                
                 patterns.push_back({pattern->name, pattern->codes, mandatory});
@@ -267,7 +270,7 @@ BieSequencePattern* BieRecognize(std::string braille) {
     static std::string tuplet3_seq = "{(tuplet3)}";
     static BieSequencePattern bie_tuplet3(BieSequencePatternType::Tuplet3, tuplet3_seq);
 
-    static std::string tuplet_seq = "{(tuplet-prefix)(number)}";
+    static std::string tuplet_seq = "{(tuplet-prefix)(tuplet-number)(tuplet-suffix)}";
     static BieSequencePattern bie_tuplet(BieSequencePatternType::Tuplet, tuplet_seq);
 
     BieSequencePattern* res = NULL;

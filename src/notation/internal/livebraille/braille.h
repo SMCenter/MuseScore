@@ -465,6 +465,7 @@ extern braille_code * Braille_Intervals[];
 //#tuplet: note grouping 2/3/5/6/XXX-notes grouping
 extern braille_code Braille_Tuplet3;
 extern braille_code Braille_TupletPrefix;
+extern braille_code Braille_TupletSuffix;
 //[Repetition]
 //#repeats' signs in print score
 extern braille_code Braille_RepetitionForward;

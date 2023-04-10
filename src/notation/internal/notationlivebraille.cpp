@@ -95,8 +95,14 @@ NotationLiveBraille::NotationLiveBraille(const Notation* notation)
     });
 
     notation->interaction()->noteInput()->stateChanged().onNotify(this, [this]() {
-        if(interaction()->noteInput()->isNoteInputMode() && isNavigationMode()) {
-            setMode(LiveBrailleMode::BrailleInput);            
+        if(interaction()->noteInput()->isNoteInputMode()) {
+            if(isNavigationMode()) {
+                setMode(LiveBrailleMode::BrailleInput);
+            }
+        } else {
+            if(isBrailleInputMode()) {
+                setMode(LiveBrailleMode::Navigation);
+            }
         }
     });
 
@@ -359,6 +365,35 @@ void NotationLiveBraille::setInputNoteDuration(Duration d)
     brailleInput()->setCurrentDuration(d.type());
 }
 
+static TupletOptions makeTupletOption(int num) {
+    TupletOptions option;
+    switch(num) {
+    case 2:
+        option.ratio = {2, 3};
+        break;
+    case 3:
+        option.ratio = {3, 2};
+        break;
+    case 5:
+        option.ratio = {5, 4};
+        break;
+    case 6:
+        option.ratio = {6, 4};
+        break;
+    case 7:
+        option.ratio = {7, 4};
+        break;
+    case 8:
+        option.ratio = {8, 6};
+        break;
+    case 9:
+        option.ratio = {9, 8};
+        break;
+    default:
+        break;
+    }
+    return option;
+}
 void NotationLiveBraille::setKeys(const QString& sequence)
 {
     LOGD() << sequence;
@@ -513,6 +548,13 @@ void NotationLiveBraille::setKeys(const QString& sequence)
                 }
             }            
             playbackController()->playElements({ currentEngravingItem() });
+            break;
+        }
+        case BieSequencePatternType::Tuplet: case BieSequencePatternType::Tuplet3: {
+            TupletOptions option = makeTupletOption(brailleInput()->tupletNumber());
+            LOGD() << "tuplet " << brailleInput()->tupletNumber() << " " << option.ratio.numerator() << ":" << option.ratio.denominator();
+            interaction()->noteInput()->addTuplet(option);
+            brailleInput()->clearTupletNumber();
             break;
         }
         default: {

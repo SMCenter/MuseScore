@@ -88,6 +88,10 @@ public:
 
     bool accord();
     void setAccord(const bool val);
+
+    int tupletNumber();
+    void setTupletNumber(const int num);
+    void clearTupletNumber();
 private:
     AccidentalType _accidental = AccidentalType::NONE;
     NoteName _note_name = NoteName::C;
@@ -114,6 +118,7 @@ private:
     Note * _long_slur_start_note =  NULL;
 
     bool _accord;
+    int _tuplet_number;
 };
 
 QString parseBrailleKeyInput(QString keys);

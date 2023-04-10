@@ -439,6 +439,15 @@ BieSequencePatternType BrailleInputState::parseBraille(IntervalDirection directi
 
         break;
     }
+    case BieSequencePatternType::Tuplet3: {
+        setTupletNumber(3);
+        break;
+    }
+    case BieSequencePatternType::Tuplet: {
+        braille_code* code = pattern->res("tuplet-number");
+        setTupletNumber(code->tag.back() - '0');
+        break;
+    }
     default: {
         break;
     }
@@ -712,4 +721,17 @@ void BrailleInputState::setAccord(const bool val)
     _accord = val;
 }
 
+int BrailleInputState::tupletNumber()
+{
+    return _tuplet_number;
+}
+void BrailleInputState::setTupletNumber(const int num)
+{
+    _tuplet_number = num;
+}
+
+void BrailleInputState::clearTupletNumber()
+{
+    _tuplet_number = -1;
+}
 }
