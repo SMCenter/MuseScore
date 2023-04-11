@@ -118,7 +118,7 @@ private:
     Note * _long_slur_start_note =  NULL;
 
     bool _accord;
-    int _tuplet_number;
+    int _tuplet_number = -1;
 };
 
 QString parseBrailleKeyInput(QString keys);

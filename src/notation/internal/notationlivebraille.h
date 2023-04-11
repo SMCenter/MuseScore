@@ -74,6 +74,7 @@ public:
     bool decDuration();
     bool setArticulation();
     void setInputNoteDuration(Duration d);
+    void setTupletDuration(Duration d);
 
     ValCh<std::string> liveBrailleInfo() const override;
     ValCh<int> cursorPosition() const override;

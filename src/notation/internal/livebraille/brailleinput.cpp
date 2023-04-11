@@ -306,6 +306,7 @@ void BrailleInputState::initialize()
     _note_group = NoteGroup::Group1;
     _intervals.clear();
     _accord = false;
+    _tuplet_number = -1;
 }
 
 void BrailleInputState::reset()
@@ -317,7 +318,7 @@ void BrailleInputState::reset()
     _code_num = 0;
     _note_slur = _long_slur_start = _long_slur_stop = _tie = false;
     _added_octave = -1;
-    _accord = false;
+    _accord = false;    
 }
 
 void BrailleInputState::resetBuffer()
@@ -348,7 +349,8 @@ BieSequencePatternType BrailleInputState::parseBraille(IntervalDirection directi
 
     switch(pattern->type()) {
     case BieSequencePatternType::Note: {
-        clearIntervals();
+        clearIntervals();        
+
         braille_code* code = pattern->res("note");
 
         NoteName note_name = getNoteName(code);
@@ -356,6 +358,11 @@ BieSequencePatternType BrailleInputState::parseBraille(IntervalDirection directi
 
         setNoteName(note_name);
         setNoteDurations(getNoteDurations(code));
+
+        code = pattern->res("tuplet3");
+        if(code != NULL) {
+            setTupletNumber(3);
+        }
 
         code = pattern->res("octave");
         if(code != NULL) {
