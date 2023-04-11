@@ -448,11 +448,29 @@ BieSequencePatternType BrailleInputState::parseBraille(IntervalDirection directi
     }
     case BieSequencePatternType::Tuplet3: {
         setTupletNumber(3);
+        setTupletDuration(Duration(DurationType::V_QUARTER));
         break;
     }
     case BieSequencePatternType::Tuplet: {
         braille_code* code = pattern->res("tuplet-number");
         setTupletNumber(code->tag.back() - '0');
+
+        code = pattern->res("c-note");
+
+        std::string stateTuplet;
+        stateTuplet = "Tuplet " + std::to_string(tupletNumber()) + " " + code->tag;
+        LOGD() << stateTuplet;
+        if(code->tag == "cWhole") {
+            setTupletDuration(Duration(DurationType::V_WHOLE));
+        } else if(code->tag == "cHalf") {
+            setTupletDuration(Duration(DurationType::V_HALF));
+        } else if(code->tag == "cQuarter") {
+            setTupletDuration(Duration(DurationType::V_QUARTER));
+        } else if(code->tag == "c8th") {
+            setTupletDuration(Duration(DurationType::V_EIGHTH));
+        } else {
+            setTupletDuration(Duration(DurationType::V_INVALID));
+        }
         break;
     }
     default: {
@@ -732,13 +750,25 @@ int BrailleInputState::tupletNumber()
 {
     return _tuplet_number;
 }
+
 void BrailleInputState::setTupletNumber(const int num)
 {
     _tuplet_number = num;
 }
 
-void BrailleInputState::clearTupletNumber()
+Duration BrailleInputState::tupletDuration()
+{
+    return _tuplet_duration;
+}
+
+void BrailleInputState::setTupletDuration(const Duration d)
+{
+    _tuplet_duration = d;
+}
+
+void BrailleInputState::clearTuplet()
 {
     _tuplet_number = -1;
+    _tuplet_duration = Duration(DurationType::V_INVALID);
 }
 }

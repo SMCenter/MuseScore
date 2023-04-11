@@ -349,21 +349,17 @@ DurationType getDuration(const QString key)
 
 void NotationLiveBraille::setInputNoteDuration(Duration d)
 {    
-    InputState& inputState = score()->inputState();
-    ChordRest* cr = inputState.cr();
-    Tuplet* tuplet = cr && cr->tuplet() ? cr->tuplet() : nullptr;
-    if(!tuplet) {
-        inputState.setDuration(d);
-        score()->setInputState(inputState);
-        brailleInput()->setCurrentDuration(d.type());
-    }
+    InputState& inputState = score()->inputState();    
+    inputState.setDuration(d);
+    score()->setInputState(inputState);
+    brailleInput()->setCurrentDuration(d.type());
 }
 
-void NotationLiveBraille::setTupletDuration(Duration d)
+void NotationLiveBraille::setTupletDuration(int tuplet, Duration d)
 {
     brailleInput()->setCurrentDuration(d.type());
 
-    switch(brailleInput()->tupletNumber()) {
+    switch(tuplet) {
     case 2:
         d = d.shiftRetainDots(-1, false);
         d = d.shiftRetainDots(-1, true);
@@ -477,20 +473,23 @@ void NotationLiveBraille::setKeys(const QString& sequence)
 
             setVoice(brailleInput()->accord());
 
-            if(brailleInput()->tupletNumber() != -1) {
-                DurationType duration = brailleInput()->getCloseDuration();
-                setTupletDuration(Duration(duration));
+            if(brailleInput()->tupletNumber() != -1
+                    && brailleInput()->tupletDuration().type() != DurationType::V_INVALID) {
+                Duration duration = brailleInput()->tupletDuration();
+                int tuplet = brailleInput()->tupletNumber();
+                setTupletDuration(tuplet, duration);
                 TupletOptions option = makeTupletOption(brailleInput()->tupletNumber());
                 interaction()->noteInput()->addTuplet(option);
-                brailleInput()->clearTupletNumber();
-            } else {
-                DurationType d = brailleInput()->getCloseDuration();
-                Duration duration = Duration(d);
-                if(brailleInput()->dots() == 1) {
-                    duration = duration.shiftRetainDots(-1, true);
-                }
-                setInputNoteDuration(duration);
+                brailleInput()->clearTuplet();
             }
+
+            DurationType d = brailleInput()->getCloseDuration();
+            Duration duration = Duration(d);
+            if(brailleInput()->dots() == 1) {
+                duration = duration.shiftRetainDots(-1, true);
+            }
+            setInputNoteDuration(duration);
+
             LOGD() << "add note " << fromNoteName(brailleInput()->noteName());
             interaction()->noteInput()->addNote(brailleInput()->noteName(), NoteAddingMode::NextChord);
             LOGD() << "octave " << brailleInput()->octave() << " added octave " << brailleInput()->addedOctave();
@@ -579,11 +578,12 @@ void NotationLiveBraille::setKeys(const QString& sequence)
         }
         case BieSequencePatternType::Tuplet: case BieSequencePatternType::Tuplet3: {
             std::string stateTuplet;
+            stateTuplet = "Tuplet " + std::to_string(brailleInput()->tupletNumber());
             auto notationAccessibility = notation()->accessibility();
             if (!notationAccessibility) {
                 return;
-            }
-            stateTuplet = "Tuplet " + std::to_string(brailleInput()->tupletNumber());
+            }            
+            LOGD() << stateTuplet;
             notationAccessibility->setTriggeredCommand(stateTuplet);
             break;
         }
@@ -591,6 +591,8 @@ void NotationLiveBraille::setKeys(const QString& sequence)
             // TODO
         }
         }
+        brailleInput()->reset();
+    } else if(seq == "Space") {
         brailleInput()->reset();
     } else if(isBrailleInputMode() && !sequence.isEmpty()) {
         QString pattern = parseBrailleKeyInput(sequence);

@@ -23,6 +23,9 @@ static BiePattern pattern_notes ={"note",
      &Braille_fWhole, &Braille_fHalf, &Braille_fQuarter, &Braille_e8th,
      &Braille_gWhole, &Braille_gHalf, &Braille_gQuarter, &Braille_g8th}};
 
+static BiePattern pattern_c_notes ={"c-note",
+     {&Braille_cWhole, &Braille_cHalf, &Braille_cQuarter, &Braille_c8th}};
+
 static BiePattern pattern_dot = {"dot", {&Braille_Dot}};
 static BiePattern pattern_tie = {"tie", {&Braille_NoteTie}};
 static BiePattern pattern_note_slur = {"note-slur", {&Braille_NoteSlur}};
@@ -170,6 +173,8 @@ BieSequencePattern::BieSequencePattern(BieSequencePatternType t, std::string seq
                 pattern = &pattern_tuplet_numbers;
             } else if(key == "tuplet-suffix") {
                 pattern = &pattern_tuplet_suffix;
+            } else if(key == "c-note") {
+                pattern = &pattern_c_notes;
             }
             if(pattern != NULL) {                
                 patterns.push_back({pattern->name, pattern->codes, mandatory});
@@ -238,8 +243,7 @@ bool BieSequencePattern::recognize(std::string braille)
     //for(std::map<std::string, braille_code *>::iterator it = _res.begin(); it != _res.end(); ++it) {
     //    LOGD() << "Key: " << it->first << " value: " << it->second->tag;
     //}
-    //LOGD() << "matches: " << mandatory_matches << " mandatories: " << _mandatories;
-    return mandatory_matches == _mandatories;
+    return mandatory_matches == _mandatories && cursor >= braille.length();
 }
 
 std::map<std::string, braille_code*> BieSequencePattern::res()
@@ -270,7 +274,7 @@ BieSequencePattern* BieRecognize(std::string braille) {
     static std::string tuplet3_seq = "{(tuplet3)}";
     static BieSequencePattern bie_tuplet3(BieSequencePatternType::Tuplet3, tuplet3_seq);
 
-    static std::string tuplet_seq = "{(tuplet-prefix)(tuplet-number)(tuplet-suffix)}";
+    static std::string tuplet_seq = "{(tuplet-prefix)(tuplet-number)(c-note)(tuplet-suffix)}";
     static BieSequencePattern bie_tuplet(BieSequencePatternType::Tuplet, tuplet_seq);
 
     BieSequencePattern* res = NULL;
