@@ -381,6 +381,16 @@ BieSequencePatternType BrailleInputState::parseBraille(IntervalDirection directi
             setDots(1);
         }
 
+        code = pattern->res("dot-2");
+        if(code != NULL) {
+            setDots(2);
+        }
+
+        code = pattern->res("dot-3");
+        if(code != NULL) {
+            setDots(3);
+        }
+
         code = pattern->res("tie");
         if(code != NULL) {
             setTie(true);
@@ -416,14 +426,23 @@ BieSequencePatternType BrailleInputState::parseBraille(IntervalDirection directi
             setDots(1);
         }
 
+        code = pattern->res("dot-2");
+        if(code != NULL) {
+            setDots(2);
+        }
+
+        code = pattern->res("dot-3");
+        if(code != NULL) {
+            setDots(3);
+        }
+
         code = pattern->res("accord");
         if(code != NULL) {
             setAccord(true);
         }
         break;
     }
-    case BieSequencePatternType::Interval: {
-        int last_interval = intervals().empty() ? -1 : intervals().back();
+    case BieSequencePatternType::Interval: {        
         braille_code* code = pattern->res("interval");
         int interval = getInterval(code);        
         interval = addInterval(interval);
@@ -448,7 +467,7 @@ BieSequencePatternType BrailleInputState::parseBraille(IntervalDirection directi
     }
     case BieSequencePatternType::Tuplet3: {
         setTupletNumber(3);
-        setTupletDuration(Duration(DurationType::V_QUARTER));
+        setTupletDuration(Duration(DurationType::V_EIGHTH));
         break;
     }
     case BieSequencePatternType::Tuplet: {

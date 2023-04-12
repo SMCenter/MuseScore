@@ -27,6 +27,8 @@ static BiePattern pattern_c_notes ={"c-note",
      {&Braille_cWhole, &Braille_cHalf, &Braille_cQuarter, &Braille_c8th}};
 
 static BiePattern pattern_dot = {"dot", {&Braille_Dot}};
+static BiePattern pattern_dot_2 = {"dot-2", {&Braille_Dot}};
+static BiePattern pattern_dot_3 = {"dot-3", {&Braille_Dot}};
 static BiePattern pattern_tie = {"tie", {&Braille_NoteTie}};
 static BiePattern pattern_note_slur = {"note-slur", {&Braille_NoteSlur}};
 static BiePattern pattern_slur_start = {"long-slur-start", {&Braille_LongSlurOpenBracket}};
@@ -60,17 +62,6 @@ static int maxPatternLength(BiePattern* pattern)
         }
     }
     return max;
-}
-
-static int matchPattern(BiePattern* pattern, std::string braille)
-// result: 0: doesn't match, otherwise return num braille cells of match
-{
-    for(auto code : pattern->codes) {
-        if(code->braille == braille) {
-            return code->cells_num;
-        }
-    }
-    return 0;
 }
 
 BieSequencePattern::BieSequencePattern(BieSequencePatternType t, std::string sequence)
@@ -151,6 +142,10 @@ BieSequencePattern::BieSequencePattern(BieSequencePatternType t, std::string seq
                 pattern = &pattern_notes;
             } else if(key == "dot") {
                 pattern = &pattern_dot;
+            } else if(key == "dot-2") {
+                pattern = &pattern_dot_2;
+            } else if(key == "dot-3") {
+                pattern = &pattern_dot_3;
             } else if(key == "tie") {
                 pattern = &pattern_tie;
             } else if(key == "note-slur") {
@@ -262,10 +257,10 @@ bool BieSequencePattern::valid()
 }
 
 BieSequencePattern* BieRecognize(std::string braille) {
-    static std::string note_input_seq = "{[accord][long-slur-start][accidental][octave](note)[dot][fingering][note-slur][long-slur-stop][tie]}";
+    static std::string note_input_seq = "{[accord][long-slur-start][accidental][octave](note)[dot][dot-2][dot-3][fingering][note-slur][long-slur-stop][tie]}";
     static BieSequencePattern bie_note_input(BieSequencePatternType::Note, note_input_seq);
 
-    static std::string rest_input_seq = "{[accord](rest)[dot][slur]}";
+    static std::string rest_input_seq = "{[accord](rest)[dot][dot-2][dot-3][slur]}";
     static BieSequencePattern bie_rest_input(BieSequencePatternType::Rest, rest_input_seq);
 
     static std::string interval_input_seq = "{[accidental][octave](interval)[fingering][tie]}";
