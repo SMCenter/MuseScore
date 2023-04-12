@@ -357,6 +357,7 @@ void NotationLiveBraille::setInputNoteDuration(Duration d)
 
 void NotationLiveBraille::setTupletDuration(int tuplet, Duration d)
 {
+    LOGD() << tuplet << " " << (int)d.type();
     brailleInput()->setCurrentDuration(d.type());
 
     switch(tuplet) {

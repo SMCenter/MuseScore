@@ -762,8 +762,63 @@ Duration BrailleInputState::tupletDuration()
 }
 
 void BrailleInputState::setTupletDuration(const Duration d)
-{
-    _tuplet_duration = d;
+{    
+    switch(noteGroup()) {
+    case NoteGroup::Group2: {
+        switch (d.type()) {
+        case DurationType::V_WHOLE: {
+            _tuplet_duration = Duration(DurationType::V_16TH);
+            break;
+        }
+        case DurationType::V_HALF: {
+            _tuplet_duration = Duration(DurationType::V_32ND);
+            break;
+        }
+        case DurationType::V_QUARTER: {
+            _tuplet_duration = Duration(DurationType::V_64TH);
+            break;
+        }
+        case DurationType::V_EIGHTH: {
+            _tuplet_duration = Duration(DurationType::V_128TH);
+            break;
+        }
+        default: {
+            _tuplet_duration = Duration(DurationType::V_INVALID);;
+            break;
+        }
+        }
+        break;
+    }
+    case NoteGroup::Group3: {
+        switch (d.type()) {
+        case DurationType::V_WHOLE: {
+            _tuplet_duration = Duration(DurationType::V_256TH);
+            break;
+        }
+        case DurationType::V_HALF: {
+            _tuplet_duration = Duration(DurationType::V_512TH);
+            break;
+        }
+        case DurationType::V_QUARTER: {
+            _tuplet_duration = Duration(DurationType::V_1024TH);
+            break;
+        }
+        case DurationType::V_EIGHTH: {
+            _tuplet_duration = Duration(DurationType::V_INVALID);
+            break;
+        }
+        default: {
+            _tuplet_duration = Duration(DurationType::V_INVALID);;
+            break;
+        }
+        }
+        break;
+    }
+    default: {
+        _tuplet_duration = d;
+        break;
+    }
+    }
 }
 
 void BrailleInputState::clearTuplet()
