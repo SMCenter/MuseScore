@@ -248,7 +248,7 @@ int getOctaveDiff(IntervalDirection direction, NoteName source, int interval)
         diff = (interval + (int)source - 1) / 7;
         break;
     case IntervalDirection::Down:
-        int src = (int) source;
+        int src = (int) source + 1;
         diff = 0;
         while(src < interval) {
             src += 7;
@@ -256,7 +256,7 @@ int getOctaveDiff(IntervalDirection direction, NoteName source, int interval)
         }        
         break;
     }
-    LOGD() << "Direction DOWN " << fromNoteName(source) << " " << interval << " diff " << diff;
+    LOGD() << "Direction DOWN " << fromNoteName(source) << " " << (int)source << " " << interval << " diff " << diff;
     return diff;
 }
 
@@ -368,7 +368,7 @@ BieSequencePatternType BrailleInputState::parseBraille(IntervalDirection directi
         if(code != NULL) {
             setAddedOctave(getOctave(code));
         } else {
-            setAddedOctave(octave() + octave_diff);
+            setAddedOctave(chordBaseNoteOctave() + octave_diff);
         }
 
         code = pattern->res("accidental");
@@ -454,7 +454,7 @@ BieSequencePatternType BrailleInputState::parseBraille(IntervalDirection directi
         code = pattern->res("octave");
         if(code != NULL) {
             setAddedOctave(getOctave(code));
-        } else if(octave_diff != 0){
+        } else {
             setAddedOctave(octave() + octave_diff);
         }
 
@@ -590,6 +590,11 @@ int BrailleInputState::addedOctave()
     return _added_octave;
 }
 
+int BrailleInputState::chordBaseNoteOctave()
+{
+    return _chordbase_note_octave;
+}
+
 voice_idx_t BrailleInputState::voice()
 {
     return _voice;
@@ -629,9 +634,13 @@ void BrailleInputState::setArticulation(const SymbolId articulation)
     _articulation = articulation;
 }
 
-void BrailleInputState::setOctave(const int octave)
+void BrailleInputState::setOctave(const int octave, const bool chord_base)
 {
     _octave = octave;
+
+    if(chord_base) {
+        _chordbase_note_octave = octave;
+    }
 }
 
 void BrailleInputState::setDots(const int dots)
@@ -641,6 +650,7 @@ void BrailleInputState::setDots(const int dots)
 
 void BrailleInputState::setAddedOctave(const int octave)
 {
+    LOGD() << octave;
     _added_octave = octave;
 }
 
@@ -653,6 +663,14 @@ std::vector<int> BrailleInputState::intervals()
 {
     return _intervals;
 }
+
+void BrailleInputState::removeLastInterval()
+{
+    if(!_intervals.empty()) {
+        _intervals.pop_back();
+    }
+}
+
 void BrailleInputState::clearIntervals()
 {
     _intervals.clear();

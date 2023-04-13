@@ -74,22 +74,18 @@ NotationLiveBraille::NotationLiveBraille(const Notation* notation)
         updateTableForLyricsFromPreferences();
     });
 
-    setIntervalDirection(notationConfiguration()->intervalDirection());
-    LOGD() << "interval direction: " << m_intervalDirection.val;
+    setIntervalDirection(notationConfiguration()->intervalDirection());    
     notationConfiguration()->intervalDirectionChanged().onNotify(this, [this]() {
         QString direction = notationConfiguration()->intervalDirection();
         setIntervalDirection(direction);
-        LOGD() << "interval direction updated: " << m_intervalDirection.val;
     });
 
 
-    notation->interaction()->selectionChanged().onNotify(this, [this]() {
-        LOGD() << "Selection changed";
+    notation->interaction()->selectionChanged().onNotify(this, [this]() {        
         doLiveBraille();
     });
 
     notation->notationChanged().onNotify(this, [this]() {
-        LOGD() << "Notation changed";
         setCurrentItemPosition(0, 0);
         doLiveBraille(true);        
     });
@@ -109,7 +105,7 @@ NotationLiveBraille::NotationLiveBraille(const Notation* notation)
     notation->interaction()->noteInput()->noteAdded().onNotify(this, [this]() {        
         if(currentEngravingItem() != NULL && currentEngravingItem()->isNote()) {
             LOGD() << "Note added: " << currentEngravingItem()->accessibleInfo();
-            Note* note = toNote(currentEngravingItem());
+            Note* note = toNote(currentEngravingItem());            
             brailleInput()->setOctave(note->octave());
         }
     });
@@ -437,7 +433,10 @@ void NotationLiveBraille::setKeys(const QString& sequence)
         interaction()->selectFirstElement();
     } else if (seq == "Delete") {
         if(currentEngravingItem()) {
-            interaction()->deleteSelection();            
+            interaction()->deleteSelection();
+            if(!brailleInput()->intervals().empty()) {
+                brailleInput()->removeLastInterval();
+            }
         }
     } else if (seq == "N") {
         toggleMode();        
@@ -501,7 +500,7 @@ void NotationLiveBraille::setKeys(const QString& sequence)
                         interaction()->movePitch(MoveDirection::Up, PitchMode::OCTAVE);
                     }
                 }
-                brailleInput()->setOctave(brailleInput()->addedOctave());
+                brailleInput()->setOctave(brailleInput()->addedOctave(), true);
             }
             if(brailleInput()->tie()) {
                 if(currentEngravingItem() != NULL && currentEngravingItem()->isNote()) {
@@ -569,6 +568,7 @@ void NotationLiveBraille::setKeys(const QString& sequence)
                         interaction()->movePitch(MoveDirection::Up, PitchMode::OCTAVE);
                     }
                 }
+                brailleInput()->setOctave(brailleInput()->addedOctave());
             }            
             playbackController()->playElements({ currentEngravingItem() });
             break;

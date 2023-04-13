@@ -50,7 +50,7 @@ static BiePattern pattern_tuplet_prefix ={"tuplet-prefix", {&Braille_TupletPrefi
 static BiePattern pattern_tuplet_suffix ={"tuplet-suffix", {&Braille_Dot}};
 
 static BiePattern pattern_tuplet_numbers ={"tuplet-number",
-    {&Braille_Lower2, &Braille_Lower3, &Braille_Lower5,
+    {&Braille_Lower2, &Braille_Lower3, &Braille_Lower5, &Braille_Lower6,
      &Braille_Lower7, &Braille_Lower8, &Braille_Lower9}};
 
 static int maxPatternLength(BiePattern* pattern)

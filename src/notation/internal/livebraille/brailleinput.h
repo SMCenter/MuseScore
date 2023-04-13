@@ -49,6 +49,7 @@ public:
     int octave();
     int dots();
     int addedOctave();
+    int chordBaseNoteOctave();
     voice_idx_t voice();
     bool noteSlur();
     bool longSlurStart();
@@ -60,7 +61,7 @@ public:
     void setCurrentDuration(const DurationType duration);
     void setNoteDurations(const std::vector<DurationType> durations);
     void setArticulation(const SymbolId articulation);
-    void setOctave(const int octave);
+    void setOctave(const int octave, const bool chord_base = false);
     void setDots(const int dots);
     void setAddedOctave(const int octave);
     void setVoice(const voice_idx_t voice);    
@@ -69,6 +70,7 @@ public:
 
     std::vector<int> intervals();
     void clearIntervals();
+    void removeLastInterval();
     int addInterval(int interval);
 
     void setTie(const bool s);
@@ -100,6 +102,7 @@ private:
     NoteName _chordbase_note_name = NoteName::C;
     SymbolId _articulation = SymbolId::noSym;
     int _octave = 4;
+    int _chordbase_note_octave = 4;
     int _added_octave = -1;
     int _dots = 0;
     voice_idx_t _voice = 0;
