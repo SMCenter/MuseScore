@@ -264,12 +264,10 @@ NoteName getNoteNameForInterval(IntervalDirection direction, NoteName source, in
 {
     NoteName note;
     switch (direction) {
-    case IntervalDirection::Up:
-        LOGD() << "Direction UP " << fromNoteName(source) << " " << interval;
+    case IntervalDirection::Up:        
         note = (NoteName)(((int) source + interval - 1) % 7);
         break;
-    case IntervalDirection::Down:
-        LOGD() << "Direction DOWN " << fromNoteName(source) << " " << interval;
+    case IntervalDirection::Down:        
         int src = (int) source;
         while(src < interval) {
             src += 7;
@@ -277,7 +275,6 @@ NoteName getNoteNameForInterval(IntervalDirection direction, NoteName source, in
         note = (NoteName)((src - interval) % 7 + 1);
         break;
     }
-    LOGD() << "Note name " << fromNoteName(note);
     return note;
 }
 
@@ -454,8 +451,8 @@ BieSequencePatternType BrailleInputState::parseBraille(IntervalDirection directi
         code = pattern->res("octave");
         if(code != NULL) {
             setAddedOctave(getOctave(code));
-        } else {
-            setAddedOctave(octave() + octave_diff);
+        } else {            
+            setAddedOctave(chordBaseNoteOctave() + octave_diff);
         }
 
         code = pattern->res("accidental");
