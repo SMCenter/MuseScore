@@ -18,8 +18,11 @@ enum class BieSequencePatternType {
     Interval,
     Rest,
     Tuplet3,
-    Tuplet,
-    Accord
+    Tuplet,    
+    Dot,
+    Tie,
+    NoteSlur,
+    LongSlurStop
 };
 
 class BieSequencePattern {

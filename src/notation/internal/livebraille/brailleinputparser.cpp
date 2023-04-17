@@ -257,13 +257,15 @@ bool BieSequencePattern::valid()
 }
 
 BieSequencePattern* BieRecognize(std::string braille) {
-    static std::string note_input_seq = "{[accord][long-slur-start][accidental][octave](note)[dot][dot-2][dot-3][fingering][note-slur][long-slur-stop][tie]}";
+    //static std::string note_input_seq = "{[accord][long-slur-start][accidental][octave](note)[dot][dot-2][dot-3][fingering][note-slur][long-slur-stop][tie]}";
+    static std::string note_input_seq = "{[accord][long-slur-start][accidental][octave](note)}";
     static BieSequencePattern bie_note_input(BieSequencePatternType::Note, note_input_seq);
 
-    static std::string rest_input_seq = "{[accord](rest)[dot][dot-2][dot-3][slur]}";
+    //static std::string rest_input_seq = "{[accord](rest)[dot][dot-2][dot-3][slur]}";
+    static std::string rest_input_seq = "{[accord](rest)}";
     static BieSequencePattern bie_rest_input(BieSequencePatternType::Rest, rest_input_seq);
 
-    static std::string interval_input_seq = "{[accidental][octave](interval)[fingering][tie]}";
+    static std::string interval_input_seq = "{[accidental][octave](interval)}";
     static BieSequencePattern bie_interval_input(BieSequencePatternType::Interval, interval_input_seq);
 
     static std::string tuplet3_seq = "{(tuplet3)}";
@@ -271,6 +273,18 @@ BieSequencePattern* BieRecognize(std::string braille) {
 
     static std::string tuplet_seq = "{(tuplet-prefix)(tuplet-number)(c-note)(tuplet-suffix)}";
     static BieSequencePattern bie_tuplet(BieSequencePatternType::Tuplet, tuplet_seq);
+
+    static std::string dot_seq = "{(dot)}";
+    static BieSequencePattern bie_dot(BieSequencePatternType::Dot, dot_seq);
+
+    static std::string tie_seq = "{(tie)}";
+    static BieSequencePattern bie_tie(BieSequencePatternType::Tie, tie_seq);
+
+    static std::string noteslur_seq = "{(note-slur)}";
+    static BieSequencePattern bie_noteslur(BieSequencePatternType::NoteSlur, noteslur_seq);
+
+    static std::string longslur_seq = "{(long-slur-stop)}";
+    static BieSequencePattern bie_longslur(BieSequencePatternType::LongSlurStop, longslur_seq);
 
     BieSequencePattern* res = NULL;
 
@@ -282,8 +296,16 @@ BieSequencePattern* BieRecognize(std::string braille) {
         res = &bie_interval_input;
     } else if(bie_tuplet3.valid() && bie_tuplet3.recognize(braille)) {
         res = &bie_tuplet3;
-    } else if(bie_tuplet.valid() && bie_tuplet.recognize(braille)) {        
+    } else if(bie_tuplet.valid() && bie_tuplet.recognize(braille)) {
         res = &bie_tuplet;
+    } else if(bie_tie.valid() && bie_tie.recognize(braille)) {
+        res = &bie_tie;
+    } else if(bie_noteslur.valid() && bie_noteslur.recognize(braille)) {
+        res = &bie_noteslur;
+    } else if(bie_longslur.valid() && bie_longslur.recognize(braille)) {
+        res = &bie_longslur;
+    } else if(bie_dot.valid() && bie_dot.recognize(braille)) {
+        res = &bie_dot;
     }
 
     return res;

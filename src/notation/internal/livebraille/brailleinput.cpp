@@ -308,7 +308,7 @@ void BrailleInputState::initialize()
 
 void BrailleInputState::reset()
 {
-    _input_buffer.clear();
+    _input_buffer = QString();
     _accidental = AccidentalType::NONE;    
     _articulation = SymbolId::noSym;
     _dots = 0;
@@ -356,11 +356,6 @@ BieSequencePatternType BrailleInputState::parseBraille(IntervalDirection directi
         setNoteName(note_name);
         setNoteDurations(getNoteDurations(code));
 
-        code = pattern->res("tuplet3");
-        if(code != NULL) {
-            setTupletNumber(3);
-        }
-
         code = pattern->res("octave");
         if(code != NULL) {
             setAddedOctave(getOctave(code));
@@ -373,40 +368,10 @@ BieSequencePatternType BrailleInputState::parseBraille(IntervalDirection directi
             setAccidental(getAccidentalType(code));
         }
 
-        code = pattern->res("dot");
-        if(code != NULL) {
-            setDots(1);
-        }
-
-        code = pattern->res("dot-2");
-        if(code != NULL) {
-            setDots(2);
-        }
-
-        code = pattern->res("dot-3");
-        if(code != NULL) {
-            setDots(3);
-        }
-
-        code = pattern->res("tie");
-        if(code != NULL) {
-            setTie(true);
-        }
-
-        code = pattern->res("note-slur");
-        if(code != NULL) {
-            setNoteSlur(true);
-        }
-
         code = pattern->res("long-slur-start");
         if(code != NULL) {
             setLongSlurStart(true);
-        }
-
-        code = pattern->res("long-slur-stop");
-        if(code != NULL) {
-            setLongSlurStop(true);
-        }
+        }        
 
         code = pattern->res("accord");
         if(code != NULL) {
@@ -417,21 +382,6 @@ BieSequencePatternType BrailleInputState::parseBraille(IntervalDirection directi
     case BieSequencePatternType::Rest: {
         braille_code* code = pattern->res("rest");
         setNoteDurations(getRestDurations(code));
-
-        code = pattern->res("dot");
-        if(code != NULL) {
-            setDots(1);
-        }
-
-        code = pattern->res("dot-2");
-        if(code != NULL) {
-            setDots(2);
-        }
-
-        code = pattern->res("dot-3");
-        if(code != NULL) {
-            setDots(3);
-        }
 
         code = pattern->res("accord");
         if(code != NULL) {
@@ -486,6 +436,34 @@ BieSequencePatternType BrailleInputState::parseBraille(IntervalDirection directi
             setTupletDuration(Duration(DurationType::V_EIGHTH));
         } else {
             setTupletDuration(Duration(DurationType::V_INVALID));
+        }
+        break;
+    }
+    case BieSequencePatternType::Tie: {
+        braille_code* code = pattern->res("tie");
+        if(code != NULL) {
+            setTie(true);
+        }
+        break;
+    }
+    case BieSequencePatternType::NoteSlur: {
+        braille_code* code = pattern->res("note-slur");
+        if(code != NULL) {
+            setNoteSlur(true);
+        }
+        break;
+    }
+    case BieSequencePatternType::LongSlurStop: {
+        braille_code* code = pattern->res("long-slur-stop");
+        if(code != NULL) {
+            setLongSlurStop(true);
+        }
+        break;
+    }
+    case BieSequencePatternType::Dot: {
+        braille_code* code = pattern->res("dot");
+        if(code != NULL) {
+            setDots(1);
         }
         break;
     }

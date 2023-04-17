@@ -457,14 +457,23 @@ void NotationLiveBraille::setKeys(const QString& sequence)
         brailleInput()->resetBuffer();
     } else if(seq == "Space+S" && isBrailleInputMode()) {
         brailleInput()->setNoteGroup(NoteGroup::Group3);
-        brailleInput()->resetBuffer();
-    } else if(seq == "Space" && !brailleInput()->buffer().isEmpty() && isBrailleInputMode()) {
+        brailleInput()->resetBuffer();    
+    } else if(seq == "Space") {
+        brailleInput()->reset();
+    } else if(isBrailleInputMode() && !sequence.isEmpty()) {
+        QString pattern = parseBrailleKeyInput(sequence);
+        if(!pattern.isEmpty()) {
+            brailleInput()->insertToBuffer(pattern);
+        } else {
+            brailleInput()->insertToBuffer(sequence);
+        }
         LOGD() << brailleInput()->buffer();
         std::string braille = translate2Braille(brailleInput()->buffer().toStdString());
         BieRecognize(braille);
         BieSequencePatternType type = brailleInput()->parseBraille(getIntervalDirection());
         switch(type) {
         case BieSequencePatternType::Note: {
+            LOGD() << "note";
             if(brailleInput()->accidental() != mu::notation::AccidentalType::NONE) {
                 interaction()->noteInput()->setAccidental(brailleInput()->accidental());
             }
@@ -482,10 +491,7 @@ void NotationLiveBraille::setKeys(const QString& sequence)
             }
 
             DurationType d = brailleInput()->getCloseDuration();
-            Duration duration = Duration(d);
-            if(brailleInput()->dots() > 0) {
-                duration.setDots(brailleInput()->dots());
-            }
+            Duration duration = Duration(d);            
             setInputNoteDuration(duration);
 
             interaction()->noteInput()->addNote(brailleInput()->noteName(), NoteAddingMode::NextChord);
@@ -502,26 +508,6 @@ void NotationLiveBraille::setKeys(const QString& sequence)
                 }
                 brailleInput()->setOctave(brailleInput()->addedOctave(), true);
             }
-            if(brailleInput()->tie()) {
-                if(currentEngravingItem() != NULL && currentEngravingItem()->isNote()) {
-                    Note* note = toNote(currentEngravingItem());
-                    brailleInput()->setTieStartNote(note);
-                }
-            } else if(brailleInput()->tieStartNote() != NULL) {
-                addTie();
-                brailleInput()->clearTie();
-            }
-            if(brailleInput()->noteSlur()) {
-                if(brailleInput()->slurStartNote() == NULL) {
-                    if(currentEngravingItem() != NULL && currentEngravingItem()->isNote()) {
-                        Note* note = toNote(currentEngravingItem());
-                        brailleInput()->setSlurStartNote(note);
-                    }
-                }
-            } else if(brailleInput()->slurStartNote() != NULL) {
-                addSlur();
-                brailleInput()->clearSlur();
-            }
 
             if(brailleInput()->longSlurStart()) {
                 if(brailleInput()->longSlurStartNote() == NULL) {
@@ -532,17 +518,22 @@ void NotationLiveBraille::setKeys(const QString& sequence)
                 }
             }
 
-            if(brailleInput()->longSlurStop()) {
-                if(brailleInput()->longSlurStartNote() != NULL) {
-                    addLongSlur();
-                    brailleInput()->clearLongSlur();
-                }
-            }            
+            if(brailleInput()->tieStartNote() != NULL) {
+                addTie();
+                brailleInput()->clearTie();
+            }
+
+            if(brailleInput()->slurStartNote() != NULL) {
+                addSlur();
+                brailleInput()->clearSlur();
+            }
 
             playbackController()->playElements({ currentEngravingItem() });
+            brailleInput()->reset();
             break;
         }
-        case BieSequencePatternType::Rest: {            
+        case BieSequencePatternType::Rest: {
+            LOGD() << "rest";
             DurationType d = brailleInput()->getCloseDuration();
             Duration duration = Duration(d);
             if(brailleInput()->dots() > 0) {
@@ -550,9 +541,11 @@ void NotationLiveBraille::setKeys(const QString& sequence)
             }
             setInputNoteDuration(Duration(duration));
             interaction()->putRest(duration);
+            brailleInput()->reset();
             break;
         }        
-        case BieSequencePatternType::Interval: {            
+        case BieSequencePatternType::Interval: {
+            LOGD() << "interval";
             if(brailleInput()->accidental() != mu::notation::AccidentalType::NONE) {
                 interaction()->noteInput()->setAccidental(brailleInput()->accidental());
             }
@@ -571,9 +564,11 @@ void NotationLiveBraille::setKeys(const QString& sequence)
                 brailleInput()->setOctave(brailleInput()->addedOctave());
             }            
             playbackController()->playElements({ currentEngravingItem() });
+            brailleInput()->reset();
             break;
         }
         case BieSequencePatternType::Tuplet: case BieSequencePatternType::Tuplet3: {
+            LOGD() << "tuplet";
             std::string stateTuplet;
             stateTuplet = "Tuplet " + std::to_string(brailleInput()->tupletNumber());
             auto notationAccessibility = notation()->accessibility();
@@ -583,13 +578,53 @@ void NotationLiveBraille::setKeys(const QString& sequence)
             notationAccessibility->setTriggeredCommand(stateTuplet);
             break;
         }
+        case BieSequencePatternType::Tie: {
+            LOGD() << "tie";
+            if(brailleInput()->tie()) {
+                if(currentEngravingItem() != NULL && currentEngravingItem()->isNote()) {
+                    Note* note = toNote(currentEngravingItem());
+                    brailleInput()->setTieStartNote(note);
+                }
+            }
+            brailleInput()->reset();
+            break;
+        }
+        case BieSequencePatternType::NoteSlur: {
+            LOGD() << "note slur";
+            if(brailleInput()->noteSlur()) {
+                if(brailleInput()->slurStartNote() == NULL) {
+                    if(currentEngravingItem() != NULL && currentEngravingItem()->isNote()) {
+                        Note* note = toNote(currentEngravingItem());
+                        brailleInput()->setSlurStartNote(note);
+                    }
+                }
+            }
+            brailleInput()->reset();
+            break;
+        }
+        case BieSequencePatternType::LongSlurStop: {
+            LOGD() << "long slur stop";
+            if(brailleInput()->longSlurStop()) {
+                if(brailleInput()->longSlurStartNote() != NULL) {
+                    addLongSlur();
+                    brailleInput()->clearLongSlur();
+                }
+            }
+            brailleInput()->reset();
+            break;
+        }
+        case BieSequencePatternType::Dot: {
+            LOGD() << "dot " << brailleInput()->dots();
+            if(brailleInput()->dots() > 0) {
+                interaction()->increaseDecreaseDuration(-brailleInput()->dots(), true);
+            }
+            brailleInput()->reset();
+            break;
+        }
         default: {
             // TODO
         }
-        }
-        brailleInput()->reset();
-    } else if(seq == "Space") {
-        brailleInput()->reset();
+        }        
     } else if(isBrailleInputMode() && !sequence.isEmpty()) {
         QString pattern = parseBrailleKeyInput(sequence);
         if(!pattern.isEmpty()) {
