@@ -106,7 +106,7 @@ private:
     int _added_octave = -1;
     int _dots = 0;
     voice_idx_t _voice = 0;
-    QString _input_buffer;
+    QString _input_buffer = QString();
     int _code_num = 0;
 
     DurationType _current_duration;

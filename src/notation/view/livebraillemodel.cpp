@@ -28,11 +28,11 @@ using namespace mu::notation;
 
 LiveBrailleModel::LiveBrailleModel(QObject* parent)
     : QObject(parent)
-{
-    if(!livebraille()) {
-        livebraille()->setMode(LiveBrailleMode::Navigation);
+{    
+    if(livebraille()) {
+        livebraille()->setMode(LiveBrailleMode::Navigation);        
     }
-    load();
+    load();    
 }
 
 QString LiveBrailleModel::liveBrailleInfo() const

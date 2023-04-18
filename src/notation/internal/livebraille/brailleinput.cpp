@@ -289,8 +289,7 @@ BrailleInputState::~BrailleInputState()
 }
 
 void BrailleInputState::initialize()
-{
-    LOGD() << "...";
+{    
     _accidental = AccidentalType::NONE;
     _note_name = NoteName::C;
     _articulation = SymbolId::noSym;
