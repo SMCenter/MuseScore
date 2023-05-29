@@ -44,7 +44,7 @@ private:
     int _mandatories = 0;
 };
 
-BieSequencePattern* BieRecognize(std::string braille);
+BieSequencePattern* BieRecognize(std::string braille, bool tuplet_indicator);
 
 }
 

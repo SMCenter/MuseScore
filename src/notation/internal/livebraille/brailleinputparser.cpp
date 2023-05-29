@@ -45,6 +45,7 @@ static BiePattern pattern_fingerings ={"fingering",
     {&Braille_Finger0, &Braille_Finger1, &Braille_Finger2,
      &Braille_Finger3, &Braille_Finger4, &Braille_Finger5}};
 
+static BiePattern pattern_tuplet_indicator ={"tuplet-indicator", {&Braille_Tuplet3}};
 static BiePattern pattern_tuplet3 ={"tuplet3", {&Braille_Tuplet3}};
 static BiePattern pattern_tuplet_prefix ={"tuplet-prefix", {&Braille_TupletPrefix}};
 static BiePattern pattern_tuplet_suffix ={"tuplet-suffix", {&Braille_Dot}};
@@ -160,6 +161,8 @@ BieSequencePattern::BieSequencePattern(BieSequencePatternType t, std::string seq
                 pattern = &pattern_intervals;
             } else if(key == "fingering") {
                 pattern = &pattern_fingerings;
+            } else if(key == "tuplet-indicator") {
+                pattern = &pattern_tuplet_indicator;
             } else if(key == "tuplet3") {
                 pattern = &pattern_tuplet3;
             } else if(key == "tuplet-prefix") {
@@ -256,7 +259,7 @@ bool BieSequencePattern::valid()
     return _valid;
 }
 
-BieSequencePattern* BieRecognize(std::string braille) {
+BieSequencePattern* BieRecognize(std::string braille, bool tuplet_indicator) {
     //static std::string note_input_seq = "{[accord][long-slur-start][accidental][octave](note)[dot][dot-2][dot-3][fingering][note-slur][long-slur-stop][tie]}";
     static std::string note_input_seq = "{[accord][long-slur-start][accidental][octave](note)}";
     static BieSequencePattern bie_note_input(BieSequencePatternType::Note, note_input_seq);
@@ -288,24 +291,30 @@ BieSequencePattern* BieRecognize(std::string braille) {
 
     BieSequencePattern* res = NULL;
 
-    if(bie_note_input.valid() && bie_note_input.recognize(braille)) {
-        res = &bie_note_input;
-    } else if(bie_rest_input.valid() && bie_rest_input.recognize(braille)) {
-        res = &bie_rest_input;
-    } else if(bie_interval_input.valid() && bie_interval_input.recognize(braille)) {
-        res = &bie_interval_input;
-    } else if(bie_tuplet3.valid() && bie_tuplet3.recognize(braille)) {
-        res = &bie_tuplet3;
-    } else if(bie_tuplet.valid() && bie_tuplet.recognize(braille)) {
-        res = &bie_tuplet;
-    } else if(bie_tie.valid() && bie_tie.recognize(braille)) {
-        res = &bie_tie;
-    } else if(bie_noteslur.valid() && bie_noteslur.recognize(braille)) {
-        res = &bie_noteslur;
-    } else if(bie_longslur.valid() && bie_longslur.recognize(braille)) {
-        res = &bie_longslur;
-    } else if(bie_dot.valid() && bie_dot.recognize(braille)) {
-        res = &bie_dot;
+    if(!tuplet_indicator) { // check note input before tuplet
+        if(bie_note_input.valid() && bie_note_input.recognize(braille)) {
+            res = &bie_note_input;
+        } else if(bie_rest_input.valid() && bie_rest_input.recognize(braille)) {
+            res = &bie_rest_input;
+        } else if(bie_interval_input.valid() && bie_interval_input.recognize(braille)) {
+            res = &bie_interval_input;
+        } else if(bie_tuplet3.valid() && bie_tuplet3.recognize(braille)) {
+            res = &bie_tuplet3;
+        //} else if(bie_tuplet.valid() && bie_tuplet.recognize(braille)) {
+        //    res = &bie_tuplet;
+        } else if(bie_tie.valid() && bie_tie.recognize(braille)) {
+            res = &bie_tie;
+        } else if(bie_noteslur.valid() && bie_noteslur.recognize(braille)) {
+            res = &bie_noteslur;
+        } else if(bie_longslur.valid() && bie_longslur.recognize(braille)) {
+            res = &bie_longslur;
+        } else if(bie_dot.valid() && bie_dot.recognize(braille)) {
+            res = &bie_dot;
+        }
+    } else { // check tuplet input
+        if(bie_tuplet.valid() && bie_tuplet.recognize(braille)) {
+            res = &bie_tuplet;
+        }
     }
 
     return res;

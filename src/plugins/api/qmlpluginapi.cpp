@@ -29,6 +29,8 @@
 #include "engraving/libmscore/factory.h"
 #include "engraving/libmscore/masterscore.h"
 
+#include "importexport/musicxml/internal/musicxml/exportxml.h"
+
 #include "cursor.h"
 #include "elements.h"
 #include "enums.h"
@@ -121,11 +123,11 @@ bool PluginAPI::writeScore(Score* s, const QString& name, const QString& ext)
         return false;
     }
 
-    UNUSED(name);
-    UNUSED(ext);
-
-    NOT_IMPLEMENTED;
-    return false;
+    if(ext == "xml" || ext == "musicxml") {
+       return saveXml(s->score(), name);
+    } else {
+        return false;
+    }
 }
 
 //---------------------------------------------------------

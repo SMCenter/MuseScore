@@ -409,6 +409,24 @@ static TupletOptions makeTupletOption(int num) {
     }
     return option;
 }
+bool matchPattern(const std::string sequence, const std::string pattern)
+{
+    QStringList seqs = QString::fromStdString(sequence).split("+");
+    QStringList pats = QString::fromStdString(pattern).split("+");
+
+    if(seqs.length() != pats.length()) {
+        return false;
+    }
+    seqs.sort();
+    pats.sort();
+
+    for(int i = 0; i < seqs.length(); i++) {
+        if(seqs.at(i) != pats.at(i)) {
+            return false;
+        }
+    }
+    return true;
+}
 void NotationLiveBraille::setKeys(const QString& sequence)
 {
     LOGD() << sequence;
@@ -419,17 +437,17 @@ void NotationLiveBraille::setKeys(const QString& sequence)
         interaction()->moveSelection(MoveDirection::Left, MoveSelectionType::Chord);
     } else if (seq == "Right") {
         interaction()->moveSelection(MoveDirection::Right, MoveSelectionType::Chord);
-    } else if (seq == "Ctrl+Left") {
+    } else if (matchPattern(seq, "Ctrl+Left")) {
         interaction()->moveSelection(MoveDirection::Left, MoveSelectionType::Measure);
-    } else if (seq == "Ctrl+Right") {
+    } else if (matchPattern(seq, "Ctrl+Right")) {
         interaction()->moveSelection(MoveDirection::Right, MoveSelectionType::Measure);
-    } else if (seq == "Alt+Left") {
+    } else if (matchPattern(seq, "Alt+Left")) {
         interaction()->moveSelection(MoveDirection::Left, MoveSelectionType::EngravingItem);
-    } else if (seq == "Alt+Right") {
+    } else if (matchPattern(seq, "Alt+Right")) {
         interaction()->moveSelection(MoveDirection::Right, MoveSelectionType::EngravingItem);
-    } else if (seq == "Ctrl+End") {
+    } else if (matchPattern(seq, "Ctrl+End")) {
         interaction()->selectLastElement();
-    } else if (seq == "Ctrl+Home") {
+    } else if (matchPattern(seq, "Ctrl+Home")) {
         interaction()->selectFirstElement();
     } else if (seq == "Delete") {
         if(currentEngravingItem()) {
@@ -449,15 +467,19 @@ void NotationLiveBraille::setKeys(const QString& sequence)
         if(isBrailleInputMode()) {
             interaction()->noteInput()->halveNoteInputDuration();
         }    
-    } else if(seq == "Space+F" && isBrailleInputMode()) {
+    } else if(matchPattern(seq, "Space+F") && isBrailleInputMode()) {
         brailleInput()->setNoteGroup(NoteGroup::Group1);
         brailleInput()->resetBuffer();
-    } else if(seq == "Space+D" && isBrailleInputMode()) {
+    } else if(matchPattern(seq, "Space+D") && isBrailleInputMode()) {
         brailleInput()->setNoteGroup(NoteGroup::Group2);
         brailleInput()->resetBuffer();
-    } else if(seq == "Space+S" && isBrailleInputMode()) {
+    } else if(matchPattern(seq, "Space+S") && isBrailleInputMode()) {
         brailleInput()->setNoteGroup(NoteGroup::Group3);
         brailleInput()->resetBuffer();    
+    } else if(matchPattern(seq, "Space+S+D+J+K") && isBrailleInputMode()) {
+        LOGD() << "tuplet input";
+        brailleInput()->setTupletIndicator(true);
+        brailleInput()->resetBuffer();
     } else if(seq == "Space") {
         brailleInput()->reset();
     } else if(isBrailleInputMode() && !sequence.isEmpty()) {
@@ -469,7 +491,7 @@ void NotationLiveBraille::setKeys(const QString& sequence)
         }
         LOGD() << brailleInput()->buffer();
         std::string braille = translate2Braille(brailleInput()->buffer().toStdString());
-        BieRecognize(braille);
+        BieRecognize(braille, brailleInput()->tupletIndicator());
         BieSequencePatternType type = brailleInput()->parseBraille(getIntervalDirection());
         switch(type) {
         case BieSequencePatternType::Note: {
@@ -624,7 +646,7 @@ void NotationLiveBraille::setKeys(const QString& sequence)
         default: {
             // TODO
         }
-        }        
+        }
     } else if(isBrailleInputMode() && !sequence.isEmpty()) {
         QString pattern = parseBrailleKeyInput(sequence);
         if(!pattern.isEmpty()) {

@@ -81,6 +81,7 @@ set(MODULE_SRC
 set(MODULE_LINK
     uicomponents
     engraving
+    iex_musicxml
     )
 
 include(SetupModule)

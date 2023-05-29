@@ -315,6 +315,7 @@ void BrailleInputState::reset()
     _note_slur = _long_slur_start = _long_slur_stop = _tie = false;
     _added_octave = -1;
     _accord = false;    
+    _tuplet_indicator = false;
 }
 
 void BrailleInputState::resetBuffer()
@@ -337,7 +338,7 @@ void BrailleInputState::insertToBuffer(const QString code)
 BieSequencePatternType BrailleInputState::parseBraille(IntervalDirection direction)
 {    
     std::string braille = translate2Braille(_input_buffer.toStdString());
-    BieSequencePattern* pattern = BieRecognize(braille);
+    BieSequencePattern* pattern = BieRecognize(braille, tupletIndicator());
 
     if(pattern == NULL) {
         return BieSequencePatternType::Undefined;
@@ -836,5 +837,14 @@ void BrailleInputState::clearTuplet()
 {
     _tuplet_number = -1;
     _tuplet_duration = Duration(DurationType::V_INVALID);
+}
+
+bool BrailleInputState::tupletIndicator()
+{
+    return _tuplet_indicator;
+}
+void BrailleInputState::setTupletIndicator(bool val)
+{
+    _tuplet_indicator = val;
 }
 }

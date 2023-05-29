@@ -96,6 +96,8 @@ public:
     Duration tupletDuration();
     void setTupletDuration(const Duration d);
     void clearTuplet();
+    bool tupletIndicator();
+    void setTupletIndicator(bool val);
 private:
     AccidentalType _accidental = AccidentalType::NONE;
     NoteName _note_name = NoteName::C;
@@ -125,6 +127,7 @@ private:
     bool _accord;
     int _tuplet_number = -1;
     Duration _tuplet_duration;
+    bool _tuplet_indicator = false;
 };
 
 QString parseBrailleKeyInput(QString keys);
